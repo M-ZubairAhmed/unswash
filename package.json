@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
-    "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,css}'"
+    "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,css,html}'"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.10.4",
     "babel-loader": "^8.1.0",
+    "html-webpack-plugin": "^4.4.1",
     "prettier": "2.1.1",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
