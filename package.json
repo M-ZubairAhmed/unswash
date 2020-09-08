@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint":"./node_modules/.bin/prettier --write 'src/**/*.{js,json,scss,css}'"
+    "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,css}'"
   },
   "repository": {
     "type": "git",
