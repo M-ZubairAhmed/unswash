@@ -4,7 +4,8 @@
   "description": "Open source clone of unsplash",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint":"./node_modules/.bin/prettier --write 'src/**/*.{js,json,scss,css}'"
   },
   "repository": {
     "type": "git",
