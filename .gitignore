@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Output files
+dist/
+build/
+
+# Webpack bundler inspector
+build-bundle-analysis.json
+
+# Editors
+.vscode
+.idea
+
+# Cache sass
+.sass-cache/
+*.map
+
+# Environmental variables
+.env
+.env.development
