@@ -4,7 +4,7 @@
   "description": "Open source clone of unsplash",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
     "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,css}'"
   },
   "repository": {
