@@ -1,3 +1,4 @@
+const path = require('path')
 const htmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
@@ -26,5 +27,14 @@ module.exports = {
   ],
   resolve: {
     modules: [path.resolve('src'), path.resolve('node_modules')],
+  },
+  devServer: {
+    compress: false,
+    historyApiFallback: true,
+    host: 'localhost',
+    open: true,
+    stats: 'errors-only',
+    port: 8000,
+    disableHostCheck: true,
   },
 }
