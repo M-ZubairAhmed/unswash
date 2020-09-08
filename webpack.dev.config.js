@@ -17,7 +17,19 @@ module.exports = {
       { test: /\.js$/, exclude: /node_modules/, use: 'babel-loader' },
       {
         test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'sass-loader'],
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: ['autoprefixer', 'postcss-import'],
+              },
+            },
+          },
+          'sass-loader',
+        ],
       },
     ],
   },
