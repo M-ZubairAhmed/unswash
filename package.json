@@ -39,11 +39,13 @@
     "node-sass": "^4.14.1",
     "path": "^0.12.7",
     "postcss": "^7.0.32",
+    "postcss-cli": "^7.1.2",
     "postcss-import": "^12.0.1",
     "postcss-loader": "^4.0.0",
     "prettier": "2.1.1",
     "sass-loader": "^10.0.2",
     "style-loader": "^1.2.1",
+    "tailwindcss": "^1.8.5",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
