@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import Masonry from 'react-masonry-css'
 
@@ -59,8 +59,52 @@ const SearchIcon = () => (
   </svg>
 )
 
+function parseImageDataFromAPI(image) {
+  const NO_ALT_TEXT = '--No alt text provided--'
+  const imageID = image?.id ?? ''
+  const imageAltText = image?.alt_description ?? NO_ALT_TEXT
+  const imageColor = image?.color ?? '#fff'
+  const imageLowRes = image?.urls?.thumb ?? ''
+  const imageLink = image?.links?.html ?? ''
+  const imageCreator = image?.user?.name ?? ''
+  const imageCreatorLink = image?.user?.links?.html ?? ''
+  const imageCreatorDP = image?.user?.profile_image?.small ?? ''
+  const isImageAnAdd = image && image.sponsorship === null ? false : true
+
+  // Filter all those images which doesnt following the conditions
+  if (
+    imageID.length === 0 ||
+    imageLowRes.length === 0 ||
+    isImageAnAdd === true ||
+    imageAltText === NO_ALT_TEXT
+  ) {
+    return {
+      id: null,
+      altText: null,
+      loadingColor: null,
+      src: null,
+      externalLink: null,
+      userName: null,
+      userLink: null,
+      userImage: null,
+    }
+  }
+
+  return {
+    id: imageID,
+    altText: imageAltText,
+    loadingColor: imageColor,
+    src: imageLowRes,
+    externalLink: imageLink,
+    userName: imageCreator,
+    userLink: imageCreatorLink,
+    userImage: imageCreatorDP,
+  }
+}
+
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
+  const [images, setImages] = useState([])
 
   useEffect(() => {
     async function doFetchImages(searchKey = '', page) {
@@ -69,7 +113,7 @@ const HomePage = () => {
 
       const listImagesURL = new URL(
         listImagesSubroute,
-        'https://api.unsplash.com',
+        process.env.API_BASE_URL,
       )
 
       listImagesURL.searchParams.append('page', page)
@@ -79,18 +123,35 @@ const HomePage = () => {
         listImagesURL.searchParams.append('query', '')
       }
 
-      const response = await axios({
-        method: 'GET',
-        url: listImagesURL.toString(),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Version': 'v1',
-          Authorization: `Client-ID`,
-        },
-        cancelToken: networkCancellation.token,
-      })
+      try {
+        const response = await axios({
+          method: 'GET',
+          url: listImagesURL.toString(),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept-Version': 'v1',
+            Authorization: `Client-ID ${process.env.API_ACCESS_KEY}`,
+          },
+          cancelToken: networkCancellation.token,
+        })
+
+        const responseData = response?.data ?? []
+
+        if (responseData.length === 0) {
+          // no images in the response
+          setImages([])
+        } else {
+          const images = responseData
+            .map((responseDatum) => parseImageDataFromAPI(responseDatum))
+            .filter((parsedImage) => parsedImage.id !== null)
+
+          setImages(images)
+        }
+      } catch (err) {
+        console.error(err)
+      }
     }
-    // doFetchImages('',"1")
+    doFetchImages('',"1")
   }, [])
 
   return (
@@ -101,11 +162,10 @@ const HomePage = () => {
         <Masonry
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
-          columnClassName="bg-clip-padding m-2">
-          <div className="">My Element</div>
-          <div className="">My Element</div>
-          <div className="">My Element</div>
-          <div className="">My Element</div>
+          columnClassName="bg-clip-padding mx-2">
+          {images.map(image => (
+            <img src={image.src}  className="w-full my-4" style={{backgroundColor:image.loadingColor}}/>
+          ))}
         </Masonry>
       </div>
     </>
