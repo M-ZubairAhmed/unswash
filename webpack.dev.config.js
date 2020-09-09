@@ -1,12 +1,17 @@
 const webpack = require('webpack')
 const path = require('path')
 const htmlWebpackPlugin = require('html-webpack-plugin')
+const dotenv = require('dotenv')
+
+const envVars = dotenv.config({
+  path: path.resolve(__dirname, '.env'),
+})
 
 module.exports = {
   mode: 'development',
-  entry: path.resolve('src', 'index.js'),
+  entry: path.resolve(__dirname, 'src', 'index.js'),
   output: {
-    path: path.resolve('dist'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'dist.bundle-[hash].js',
     publicPath: '/',
     pathinfo: true,
@@ -38,7 +43,7 @@ module.exports = {
       template: './src/index.html',
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('development'),
+      'process.env': JSON.stringify(envVars.parsed),
     }),
   ],
   resolve: {
