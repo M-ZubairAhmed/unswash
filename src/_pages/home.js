@@ -1,4 +1,4 @@
-import React, { useEffect,useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import axios from 'axios'
 
 const LogoBar = () => (
@@ -55,33 +55,34 @@ const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
 
   useEffect(() => {
-    async function doFetchImages(searchKey="",page){
+    async function doFetchImages(searchKey = '', page) {
       const isSearchActive = searchKey.trim().length !== 0
       const listImagesSubroute = isSearchActive ? '/search/photos' : '/photos'
-      
-      const listImagesURL = new URL(listImagesSubroute,'https://api.unsplash.com')
 
-      listImagesURL.searchParams.append('page',page)
-      listImagesURL.searchParams.append('per_page','25')
-      listImagesURL.searchParams.append('content_filter','high')
-      if(isSearchActive){
-        listImagesURL.searchParams.append('query','')
+      const listImagesURL = new URL(
+        listImagesSubroute,
+        'https://api.unsplash.com',
+      )
+
+      listImagesURL.searchParams.append('page', page)
+      listImagesURL.searchParams.append('per_page', '25')
+      listImagesURL.searchParams.append('content_filter', 'high')
+      if (isSearchActive) {
+        listImagesURL.searchParams.append('query', '')
       }
 
       const response = await axios({
         method: 'GET',
-          url: listImagesURL.toString(),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept-Version': 'v1',
-            Authorization: `Client-ID`,
-          },
-          cancelToken: networkCancellation.token,
+        url: listImagesURL.toString(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Version': 'v1',
+          Authorization: `Client-ID`,
+        },
+        cancelToken: networkCancellation.token,
       })
-
     }
-
-    doFetchImages('',"1")
+    // doFetchImages('',"1")
   }, [])
 
   return (
