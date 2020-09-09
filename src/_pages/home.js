@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect,useMemo } from 'react'
+import axios from 'axios'
 
 const LogoBar = () => (
   <div className="w-full text-center flex justify-center flex-col py-6">
-    <h1 class="text-6xl text-gray-600 font-extrabold">Unswash</h1>
+    <h1 className="text-6xl text-gray-600 font-extrabold">Unswash</h1>
     <p className="text-purple-800 italic font-semibold">
       Discover breathtaking images
     </p>
@@ -40,22 +41,56 @@ const SearchIcon = () => (
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg">
     <path
-      fill-rule="evenodd"
+      fillRule="evenodd"
       d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z"
     />
     <path
-      fill-rule="evenodd"
+      fillRule="evenodd"
       d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"
     />
   </svg>
 )
 
-const HomePage = () => (
-  <>
-    <LogoBar />
-    <SearchBar />
-    <div className="container mx-auto bg-gray-500"></div>
-  </>
-)
+const HomePage = () => {
+  const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
+
+  useEffect(() => {
+    async function doFetchImages(searchKey="",page){
+      const isSearchActive = searchKey.trim().length !== 0
+      const listImagesSubroute = isSearchActive ? '/search/photos' : '/photos'
+      
+      const listImagesURL = new URL(listImagesSubroute,'https://api.unsplash.com')
+
+      listImagesURL.searchParams.append('page',page)
+      listImagesURL.searchParams.append('per_page','25')
+      listImagesURL.searchParams.append('content_filter','high')
+      if(isSearchActive){
+        listImagesURL.searchParams.append('query','')
+      }
+
+      const response = await axios({
+        method: 'GET',
+          url: listImagesURL.toString(),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept-Version': 'v1',
+            Authorization: `Client-ID`,
+          },
+          cancelToken: networkCancellation.token,
+      })
+
+    }
+
+    doFetchImages('',"1")
+  }, [])
+
+  return (
+    <>
+      <LogoBar />
+      <SearchBar />
+      <div className="container mx-auto bg-gray-500"></div>
+    </>
+  )
+}
 
 export default HomePage
