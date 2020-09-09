@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo } from 'react'
 import axios from 'axios'
+import Masonry from 'react-masonry-css'
+
+const MASONRY_BREAKPOINTS = {
+  default: 3,
+  1024: 3,
+  768: 2,
+  640: 1,
+}
 
 const LogoBar = () => (
   <div className="w-full text-center flex justify-center flex-col py-6">
@@ -89,7 +97,17 @@ const HomePage = () => {
     <>
       <LogoBar />
       <SearchBar />
-      <div className="container mx-auto bg-gray-500"></div>
+      <div className="container mx-auto my-6">
+        <Masonry
+          breakpointCols={MASONRY_BREAKPOINTS}
+          className="flex w-auto"
+          columnClassName="bg-clip-padding m-2">
+          <div className="">My Element</div>
+          <div className="">My Element</div>
+          <div className="">My Element</div>
+          <div className="">My Element</div>
+        </Masonry>
+      </div>
     </>
   )
 }
