@@ -58,14 +58,66 @@ const SearchIcon = () => (
     />
   </svg>
 )
-function calculateImageHeight(baseWidth, originalWidth, originalHeight) {
-  if (baseWidth === 0 || originalHeight === 0 || originalWidth === 0) {
+
+function calculateImageHeight(
+  viewportWidth,
+  masonryWidth,
+  originalWidth,
+  originalHeight,
+) {
+  if (
+    viewportWidth === 0 ||
+    originalHeight === 0 ||
+    originalWidth === 0 ||
+    masonryWidth === 0
+  ) {
     return 0
   }
 
-  const columnWidth = baseWidth / 1
+  let viewportBreakPoint = 0
+  if (viewportWidth >= 768) {
+    viewportBreakPoint = 1024
+  } else if (viewportWidth >= 640 && viewportWidth < 768) {
+    viewportBreakPoint = 768
+  } else if (viewportWidth < 640) {
+    viewportBreakPoint = 640
+  }
+
+  if (viewportBreakPoint === 0) {
+    return 0
+  }
+
+  const numberOfColumns = MASONRY_BREAKPOINTS[viewportBreakPoint]
+  const columnWidth = masonryWidth / numberOfColumns
 
   return (columnWidth / originalWidth) * originalHeight
+}
+
+const Image = ({
+  src,
+  backgroundColor,
+  originalWidth,
+  originalHeight,
+  widthOfContainer,
+}) => {
+  const height = calculateImageHeight(
+    widthOfContainer.viewport,
+    widthOfContainer.masonry,
+    originalWidth,
+    originalHeight,
+  )
+
+  return (
+    <img
+      src={src}
+      loading="lazy"
+      style={{
+        width: '100%',
+        height: height,
+        backgroundColor: backgroundColor,
+      }}
+    />
+  )
 }
 
 function parseImageDataFromAPI(image) {
@@ -96,7 +148,7 @@ function parseImageDataFromAPI(image) {
       altText: null,
       originalHeight: null,
       originalWidth: null,
-      loadingColor: null,
+      backgroundColor: null,
       src: null,
       externalLink: null,
       userName: null,
@@ -110,7 +162,7 @@ function parseImageDataFromAPI(image) {
     altText: imageAltText,
     originalHeight: imageHeight,
     originalWidth: imageWidth,
-    loadingColor: imageColor,
+    backgroundColor: imageColor,
     src: imageLowRes,
     externalLink: imageLink,
     userName: imageCreator,
@@ -119,23 +171,37 @@ function parseImageDataFromAPI(image) {
   }
 }
 
-function includeImageHeight(image, widthOfContainer) {
-  const imageOriginalHeight = image?.originalHeight ?? 0
-  const imageOriginalWidth = image?.originalWidth ?? 0
-  const imageApparentHeight = calculateImageHeight(
-    widthOfContainer,
-    imageOriginalWidth,
-    imageOriginalHeight,
-  )
-
-  return { ...image, apparentHeight: imageApparentHeight }
-}
-
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
   const [images, setImages] = useState([])
 
   const imageContainerRef = useRef(null)
+  const [widthOfContainer, setWidthOfContainer] = useState({
+    viewport: 0,
+    masonry: 0,
+  })
+
+  function handleBrowserResize() {
+    const viewportWidth =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth ||
+      0
+
+    const masonryWidth =
+      imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
+        ?.width ?? 0
+
+    // skip resetting if values didnt change
+    if (
+      widthOfContainer.viewport === viewportWidth &&
+      widthOfContainer.masonry === masonryWidth
+    ) {
+      return
+    }
+
+    setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
+  }
 
   useEffect(() => {
     async function doFetchImages(searchKey = '', page) {
@@ -172,16 +238,9 @@ const HomePage = () => {
           // no images in the response
           setImages([])
         } else {
-          const widthOfContainer =
-            imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
-              ?.width ?? 0
-
           const images = responseData
             .map((responseDatum) => parseImageDataFromAPI(responseDatum))
             .filter((parsedImage) => parsedImage.id !== null)
-            .map((filteredImage) =>
-              includeImageHeight(filteredImage, widthOfContainer),
-            )
 
           setImages(images)
         }
@@ -190,7 +249,21 @@ const HomePage = () => {
       }
     }
 
+    if (typeof window !== undefined) {
+      // Add resize event listerer for recalculating image height based on width change
+      window.addEventListener('resize', handleBrowserResize)
+      handleBrowserResize()
+    }
+
+    // Function call for the unspash api
     doFetchImages('', '1')
+
+    // clean up functions
+    return () => {
+      if (typeof window !== undefined) {
+        window.removeEventListener('resize', handleBrowserResize)
+      }
+    }
   }, [])
 
   return (
@@ -202,16 +275,8 @@ const HomePage = () => {
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
           columnClassName="bg-clip-padding">
-          {images.map((image) => (
-            <img
-              src={image.src}
-              loading="lazy"
-              style={{
-                width: '100%',
-                height: image.apparentHeight,
-                backgroundColor: image.loadingColor,
-              }}
-            />
+          {images.map((imageData) => (
+            <Image widthOfContainer={widthOfContainer} {...imageData} />
           ))}
         </Masonry>
       </div>
