@@ -239,8 +239,8 @@ const HomePage = () => {
           setImages([])
         } else {
           const images = responseData
-            .map((responseDatum) => parseImageDataFromAPI(responseDatum))
-            .filter((parsedImage) => parsedImage.id !== null)
+            .map(responseDatum => parseImageDataFromAPI(responseDatum))
+            .filter(parsedImage => parsedImage.id !== null)
 
           setImages(images)
         }
@@ -275,7 +275,7 @@ const HomePage = () => {
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
           columnClassName="bg-clip-padding">
-          {images.map((imageData) => (
+          {images.map(imageData => (
             <Image widthOfContainer={widthOfContainer} {...imageData} />
           ))}
         </Masonry>
