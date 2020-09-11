@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import axios from 'axios'
 import Masonry from 'react-masonry-css'
 
@@ -58,11 +58,22 @@ const SearchIcon = () => (
     />
   </svg>
 )
+function calculateImageHeight(baseWidth, originalWidth, originalHeight) {
+  if (baseWidth === 0 || originalHeight === 0 || originalWidth === 0) {
+    return 0
+  }
+
+  const columnWidth = baseWidth / 1
+
+  return (columnWidth / originalWidth) * originalHeight
+}
 
 function parseImageDataFromAPI(image) {
   const NO_ALT_TEXT = '--No alt text provided--'
   const imageID = image?.id ?? ''
   const imageAltText = image?.alt_description ?? NO_ALT_TEXT
+  const imageWidth = image?.width ?? 0
+  const imageHeight = image?.height ?? 0
   const imageColor = image?.color ?? '#fff'
   const imageLowRes = image?.urls?.thumb ?? ''
   const imageLink = image?.links?.html ?? ''
@@ -76,11 +87,15 @@ function parseImageDataFromAPI(image) {
     imageID.length === 0 ||
     imageLowRes.length === 0 ||
     isImageAnAdd === true ||
-    imageAltText === NO_ALT_TEXT
+    imageAltText === NO_ALT_TEXT ||
+    String(imageHeight) === '0' ||
+    String(imageWidth) === '0'
   ) {
     return {
       id: null,
       altText: null,
+      originalHeight: null,
+      originalWidth: null,
       loadingColor: null,
       src: null,
       externalLink: null,
@@ -93,6 +108,8 @@ function parseImageDataFromAPI(image) {
   return {
     id: imageID,
     altText: imageAltText,
+    originalHeight: imageHeight,
+    originalWidth: imageWidth,
     loadingColor: imageColor,
     src: imageLowRes,
     externalLink: imageLink,
@@ -102,9 +119,23 @@ function parseImageDataFromAPI(image) {
   }
 }
 
+function includeImageHeight(image, widthOfContainer) {
+  const imageOriginalHeight = image?.originalHeight ?? 0
+  const imageOriginalWidth = image?.originalWidth ?? 0
+  const imageApparentHeight = calculateImageHeight(
+    widthOfContainer,
+    imageOriginalWidth,
+    imageOriginalHeight,
+  )
+
+  return { ...image, apparentHeight: imageApparentHeight }
+}
+
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
   const [images, setImages] = useState([])
+
+  const imageContainerRef = useRef(null)
 
   useEffect(() => {
     async function doFetchImages(searchKey = '', page) {
@@ -141,9 +172,16 @@ const HomePage = () => {
           // no images in the response
           setImages([])
         } else {
+          const widthOfContainer =
+            imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
+              ?.width ?? 0
+
           const images = responseData
             .map((responseDatum) => parseImageDataFromAPI(responseDatum))
             .filter((parsedImage) => parsedImage.id !== null)
+            .map((filteredImage) =>
+              includeImageHeight(filteredImage, widthOfContainer),
+            )
 
           setImages(images)
         }
@@ -151,20 +189,29 @@ const HomePage = () => {
         console.error(err)
       }
     }
-    doFetchImages('',"1")
+
+    doFetchImages('', '1')
   }, [])
 
   return (
     <>
       <LogoBar />
       <SearchBar />
-      <div className="container mx-auto my-6">
+      <div className="container mx-auto my-6" ref={imageContainerRef}>
         <Masonry
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
-          columnClassName="bg-clip-padding mx-2">
-          {images.map(image => (
-            <img src={image.src}  className="w-full my-4" style={{backgroundColor:image.loadingColor}}/>
+          columnClassName="bg-clip-padding">
+          {images.map((image) => (
+            <img
+              src={image.src}
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: image.apparentHeight,
+                backgroundColor: image.loadingColor,
+              }}
+            />
           ))}
         </Masonry>
       </div>
