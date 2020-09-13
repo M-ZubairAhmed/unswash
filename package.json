@@ -19,6 +19,7 @@
   "homepage": "https://github.com/m-zubairahmed/unswash#readme",
   "dependencies": {
     "axios": "^0.20.0",
+    "invert-color": "^2.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-masonry-css": "^1.0.14"

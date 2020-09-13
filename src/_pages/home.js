@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import axios from 'axios'
 import Masonry from 'react-masonry-css'
+import invert from 'invert-color'
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -96,6 +97,7 @@ function calculateImageHeight(
 const Image = ({
   src,
   backgroundColor,
+  alt,
   originalWidth,
   originalHeight,
   widthOfContainer,
@@ -110,11 +112,16 @@ const Image = ({
   return (
     <img
       src={src}
+      alt={alt}
       loading="lazy"
+      className="text-center text-lg subpixel-antialiased italic font-semibold"
       style={{
         width: '100%',
         height: height,
         backgroundColor: backgroundColor,
+        color: invert(backgroundColor),
+        marginTop: '0.5rem',
+        marginBottom: '0.5rem',
       }}
     />
   )
@@ -145,7 +152,7 @@ function parseImageDataFromAPI(image) {
   ) {
     return {
       id: null,
-      altText: null,
+      alt: null,
       originalHeight: null,
       originalWidth: null,
       backgroundColor: null,
@@ -159,7 +166,7 @@ function parseImageDataFromAPI(image) {
 
   return {
     id: imageID,
-    altText: imageAltText,
+    alt: imageAltText,
     originalHeight: imageHeight,
     originalWidth: imageWidth,
     backgroundColor: imageColor,
@@ -199,6 +206,7 @@ const HomePage = () => {
     ) {
       return
     }
+    console.log('resize', viewportWidth, masonryWidth)
 
     setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
   }
@@ -274,7 +282,7 @@ const HomePage = () => {
         <Masonry
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
-          columnClassName="bg-clip-padding">
+          columnClassName="bg-clip-padding m-1">
           {images.map(imageData => (
             <Image widthOfContainer={widthOfContainer} {...imageData} />
           ))}
