@@ -114,12 +114,13 @@ const Image = ({
       src={src}
       alt={alt}
       loading="lazy"
-      className="text-center text-lg subpixel-antialiased italic font-semibold"
+      className="text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer"
+      title={alt}
       style={{
         width: '100%',
         height: height,
         backgroundColor: backgroundColor,
-        color: invert(backgroundColor),
+        color: invert(backgroundColor), // To highligh alt text color based on background color
         marginTop: '0.5rem',
         marginBottom: '0.5rem',
       }}
@@ -180,7 +181,9 @@ function parseImageDataFromAPI(image) {
 
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
+
   const [images, setImages] = useState([])
+  const [pageNumber, setPageNumber] = useState(1)
 
   const imageContainerRef = useRef(null)
   const [widthOfContainer, setWidthOfContainer] = useState({
@@ -206,65 +209,18 @@ const HomePage = () => {
     ) {
       return
     }
-    console.log('resize', viewportWidth, masonryWidth)
+    // console.log('resize', viewportWidth, masonryWidth)
 
     setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
   }
 
+  // effect running on first mount of component for browser resize
   useEffect(() => {
-    async function doFetchImages(searchKey = '', page) {
-      const isSearchActive = searchKey.trim().length !== 0
-      const listImagesSubroute = isSearchActive ? '/search/photos' : '/photos'
-
-      const listImagesURL = new URL(
-        listImagesSubroute,
-        process.env.API_BASE_URL,
-      )
-
-      listImagesURL.searchParams.append('page', page)
-      listImagesURL.searchParams.append('per_page', '25')
-      listImagesURL.searchParams.append('content_filter', 'high')
-      if (isSearchActive) {
-        listImagesURL.searchParams.append('query', '')
-      }
-
-      try {
-        const response = await axios({
-          method: 'GET',
-          url: listImagesURL.toString(),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept-Version': 'v1',
-            Authorization: `Client-ID ${process.env.API_ACCESS_KEY}`,
-          },
-          cancelToken: networkCancellation.token,
-        })
-
-        const responseData = response?.data ?? []
-
-        if (responseData.length === 0) {
-          // no images in the response
-          setImages([])
-        } else {
-          const images = responseData
-            .map(responseDatum => parseImageDataFromAPI(responseDatum))
-            .filter(parsedImage => parsedImage.id !== null)
-
-          setImages(images)
-        }
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
     if (typeof window !== undefined) {
       // Add resize event listerer for recalculating image height based on width change
       window.addEventListener('resize', handleBrowserResize)
       handleBrowserResize()
     }
-
-    // Function call for the unspash api
-    doFetchImages('', '1')
 
     // clean up functions
     return () => {
@@ -274,6 +230,61 @@ const HomePage = () => {
     }
   }, [])
 
+  async function doFetchImages(searchKey = '', pageNumber) {
+    const isSearchActive = searchKey.trim().length !== 0
+    const listImagesSubroute = isSearchActive ? '/search/photos' : '/photos'
+
+    const listImagesURL = new URL(listImagesSubroute, process.env.API_BASE_URL)
+
+    listImagesURL.searchParams.append('page', pageNumber)
+    listImagesURL.searchParams.append('per_page', '20')
+    listImagesURL.searchParams.append('content_filter', 'high')
+    if (isSearchActive) {
+      listImagesURL.searchParams.append('query', '')
+    }
+
+    try {
+      const response = await axios({
+        method: 'GET',
+        url: listImagesURL.toString(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Version': 'v1',
+          Authorization: `Client-ID ${process.env.API_ACCESS_KEY}`,
+        },
+        cancelToken: networkCancellation.token,
+      })
+
+      const responseData = response?.data ?? []
+
+      if (responseData.length === 0) {
+        // no images in the response
+        setImages([])
+      } else {
+        const imagesFromAPI = responseData
+          .map(responseDatum => parseImageDataFromAPI(responseDatum))
+          .filter(parsedImage => parsedImage.id !== null)
+
+        setImages(images => [...images, ...imagesFromAPI])
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    // Function call for the unspash api based on search or random photos
+    doFetchImages('', pageNumber)
+
+    return () => {
+      console.log('ad')
+    }
+  }, [pageNumber])
+
+  function onLoadMore() {
+    setPageNumber(previousPageNumber => previousPageNumber + 1)
+  }
+
   return (
     <>
       <LogoBar />
@@ -282,11 +293,18 @@ const HomePage = () => {
         <Masonry
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
-          columnClassName="bg-clip-padding m-1">
+          columnClassName="bg-clip-border mx-1">
           {images.map(imageData => (
             <Image widthOfContainer={widthOfContainer} {...imageData} />
           ))}
         </Masonry>
+        <div className="text-center py-6">
+          <button
+            className="text-gray-500 text-xl hover:underline"
+            onClick={onLoadMore}>
+            Load more
+          </button>
+        </div>
       </div>
     </>
   )
