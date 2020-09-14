@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react'
 import axios from 'axios'
 import Masonry from 'react-masonry-css'
 import invert from 'invert-color'
+import { useInView } from 'react-intersection-observer'
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -20,7 +21,7 @@ const LogoBar = () => (
 )
 
 const SearchBar = () => (
-  <div className="w-full sticky top-0 right-0 left-0 shadow-md p-3 bg-white">
+  <div className="w-full sticky top-0 right-0 left-0 shadow-md p-3 bg-white z-50">
     <form className="container mx-auto bg-white py-4 flex items-center justify-center">
       <input
         name="search"
@@ -95,36 +96,66 @@ function calculateImageHeight(
 }
 
 const Image = ({
-  src,
+  srcLow,
+  srcMed,
+  srcHigh,
+  srcUltra,
   backgroundColor,
   alt,
   originalWidth,
   originalHeight,
   widthOfContainer,
 }) => {
-  const height = calculateImageHeight(
-    widthOfContainer.viewport,
-    widthOfContainer.masonry,
-    originalWidth,
-    originalHeight,
+  const [imageRef, isImageInView] = useInView({
+    triggerOnce: true,
+    rootMargin: '150% 0%',
+    trackVisibility: true,
+    delay: 100,
+  })
+
+  const height = useMemo(
+    () =>
+      calculateImageHeight(
+        widthOfContainer.viewport,
+        widthOfContainer.masonry,
+        originalWidth,
+        originalHeight,
+      ),
+    [
+      widthOfContainer.viewport,
+      widthOfContainer.masonry,
+      originalWidth,
+      originalHeight,
+    ],
   )
 
+  const imageProps = {
+    alt,
+    loading: 'lazy',
+    className:
+      'text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer',
+    title: alt,
+    style: {
+      width: '100%',
+      height: height,
+      backgroundColor: backgroundColor,
+      color: invert(backgroundColor), // To highligh alt text color based on background color
+      marginTop: '0.5rem',
+      marginBottom: '0.5rem',
+    },
+  }
+
   return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      className="text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer"
-      title={alt}
-      style={{
-        width: '100%',
-        height: height,
-        backgroundColor: backgroundColor,
-        color: invert(backgroundColor), // To highligh alt text color based on background color
-        marginTop: '0.5rem',
-        marginBottom: '0.5rem',
-      }}
-    />
+    <figure ref={imageRef} className="relative group">
+      {isImageInView ? (
+        <img {...imageProps} src={srcMed} />
+      ) : (
+        <img {...imageProps} />
+      )}
+      <div className="absolute top-0 right-0 w-full h-full pointer-events-none bg-black bg-opacity-25 hover:bg-white">
+        hello
+      </div>
+    </figure>
   )
 }
 
@@ -136,6 +167,9 @@ function parseImageDataFromAPI(image) {
   const imageHeight = image?.height ?? 0
   const imageColor = image?.color ?? '#fff'
   const imageLowRes = image?.urls?.thumb ?? ''
+  const imageMedRes = image?.urls?.small ?? ''
+  const imageHighRes = image?.urls?.regular ?? ''
+  const imageUltraRes = image?.urls?.full ?? ''
   const imageLink = image?.links?.html ?? ''
   const imageCreator = image?.user?.name ?? ''
   const imageCreatorLink = image?.user?.links?.html ?? ''
@@ -157,7 +191,10 @@ function parseImageDataFromAPI(image) {
       originalHeight: null,
       originalWidth: null,
       backgroundColor: null,
-      src: null,
+      srcLow: null,
+      srcMed: null,
+      srcHigh: null,
+      srcUltra: null,
       externalLink: null,
       userName: null,
       userLink: null,
@@ -171,7 +208,10 @@ function parseImageDataFromAPI(image) {
     originalHeight: imageHeight,
     originalWidth: imageWidth,
     backgroundColor: imageColor,
-    src: imageLowRes,
+    srcLow: imageLowRes,
+    srcMed: imageMedRes,
+    srcHigh: imageHighRes,
+    srcUltra: imageUltraRes,
     externalLink: imageLink,
     userName: imageCreator,
     userLink: imageCreatorLink,
@@ -189,6 +229,12 @@ const HomePage = () => {
   const [widthOfContainer, setWidthOfContainer] = useState({
     viewport: 0,
     masonry: 0,
+  })
+
+  const [loadMoreRef, isLoadMoreInView] = useInView({
+    rootMargin: '150% 0%',
+    trackVisibility: true,
+    delay: 100,
   })
 
   function handleBrowserResize() {
@@ -224,6 +270,7 @@ const HomePage = () => {
 
     // clean up functions
     return () => {
+      console.log('unm1')
       if (typeof window !== undefined) {
         window.removeEventListener('resize', handleBrowserResize)
       }
@@ -275,15 +322,18 @@ const HomePage = () => {
   useEffect(() => {
     // Function call for the unspash api based on search or random photos
     doFetchImages('', pageNumber)
-
-    return () => {
-      console.log('ad')
-    }
   }, [pageNumber])
 
-  function onLoadMore() {
+  function handleLoadMore() {
     setPageNumber(previousPageNumber => previousPageNumber + 1)
   }
+
+  useEffect(() => {
+    if (isLoadMoreInView) {
+      console.log('load more')
+      handleLoadMore()
+    }
+  }, [isLoadMoreInView])
 
   return (
     <>
@@ -295,13 +345,18 @@ const HomePage = () => {
           className="flex w-auto"
           columnClassName="bg-clip-border mx-1">
           {images.map(imageData => (
-            <Image widthOfContainer={widthOfContainer} {...imageData} />
+            <Image
+              key={imageData.id}
+              widthOfContainer={widthOfContainer}
+              {...imageData}
+            />
           ))}
         </Masonry>
         <div className="text-center py-6">
           <button
+            ref={loadMoreRef}
             className="text-gray-500 text-xl hover:underline"
-            onClick={onLoadMore}>
+            onClick={handleLoadMore}>
             Load more
           </button>
         </div>
