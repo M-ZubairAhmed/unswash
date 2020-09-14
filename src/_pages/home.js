@@ -95,7 +95,139 @@ function calculateImageHeight(
   return (columnWidth / originalWidth) * originalHeight
 }
 
+const ExternalLinkIcon = () => (
+  <svg
+    width="1.3em"
+    height="1.3em"
+    viewBox="0 0 16 16"
+    class="inline"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg">
+    <path
+      fill-rule="evenodd"
+      d="M6.364 13.5a.5.5 0 0 0 .5.5H13.5a1.5 1.5 0 0 0 1.5-1.5v-10A1.5 1.5 0 0 0 13.5 1h-10A1.5 1.5 0 0 0 2 2.5v6.636a.5.5 0 1 0 1 0V2.5a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v10a.5.5 0 0 1-.5.5H6.864a.5.5 0 0 0-.5.5z"
+    />
+    <path
+      fill-rule="evenodd"
+      d="M11 5.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793l-8.147 8.146a.5.5 0 0 0 .708.708L10 6.707V10.5a.5.5 0 0 0 1 0v-5z"
+    />
+  </svg>
+)
+
+const ZoomIcon = () => (
+  <svg
+    width="1.3em"
+    height="1.3em"
+    viewBox="0 0 16 16"
+    class="inline"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg">
+    <path
+      fill-rule="evenodd"
+      d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"
+    />
+    <path d="M10.344 11.742c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1 6.538 6.538 0 0 1-1.398 1.4z" />
+    <path
+      fill-rule="evenodd"
+      d="M6.5 3a.5.5 0 0 1 .5.5V6h2.5a.5.5 0 0 1 0 1H7v2.5a.5.5 0 0 1-1 0V7H3.5a.5.5 0 0 1 0-1H6V3.5a.5.5 0 0 1 .5-.5z"
+    />
+  </svg>
+)
+
+const ImageOverlay = ({
+  isImageInView,
+  id = '',
+  alt,
+  externalLink = '',
+  userLink = '',
+  userName = '',
+  userImage = '',
+}) => {
+  const userImageProps = {
+    alt: 'user',
+    loading: 'lazy',
+    title: '',
+    className: 'h-8 w-8 object-cover rounded-full bg-white',
+  }
+
+  // if no property exists then dont show the overlay
+  if (
+    id.length === 0 &&
+    externalLink.length === 0 &&
+    (userImage.length === 0 || userName.length === 0)
+  ) {
+    return null
+  }
+
+  let fullImageButton = null
+  if (id && id.length !== 0) {
+    fullImageButton = (
+      <a
+        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded"
+        title="View full image">
+        <ZoomIcon />
+      </a>
+    )
+  }
+
+  let externalImageButton = null
+  if (externalLink && externalLink.length !== 0) {
+    externalImageButton = (
+      <a
+        href={externalLink}
+        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded ml-4"
+        title="View image at Unsplash">
+        <ExternalLinkIcon />
+      </a>
+    )
+  }
+  let displayPicture = null
+  if (userImage && userImage.length !== 0) {
+    displayPicture = (
+      <a href={userLink} rel="noopener noreferrer">
+        {isImageInView ? (
+          <img src={userImage} {...userImageProps} />
+        ) : (
+          <img {...userImageProps} />
+        )}
+      </a>
+    )
+  }
+
+  let displayName = null
+  if (userName && userName.length !== 0) {
+    displayName = (
+      <a
+        href={userLink}
+        rel="noopener noreferrer"
+        className="font-semibold tracking-wide text-gray-300 truncate ml-4 hover:text-white"
+        title={userName}>
+        {userName}
+      </a>
+    )
+  }
+
+  return (
+    <div
+      id="image-overlay"
+      className="absolute top-0 right-0 w-full h-full bg-black bg-opacity-50 z-10 
+      transition-opacity duration-500 ease-in-out opacity-0 hover:text-red
+      flex flex-col justify-between p-6"
+      title={alt}>
+      <div className="text-right">
+        {fullImageButton}
+        {externalImageButton}
+      </div>
+      <div className="flex items-center">
+        {displayPicture}
+        {displayName}
+      </div>
+    </div>
+  )
+}
+
 const Image = ({
+  id,
   srcLow,
   srcMed,
   srcHigh,
@@ -104,6 +236,10 @@ const Image = ({
   alt,
   originalWidth,
   originalHeight,
+  externalLink,
+  userImage,
+  userName,
+  userLink,
   widthOfContainer,
 }) => {
   const [imageRef, isImageInView] = useInView({
@@ -146,15 +282,20 @@ const Image = ({
   }
 
   return (
-    <figure ref={imageRef} className="relative group">
+    <figure id="image-container" ref={imageRef} className="group relative">
       {isImageInView ? (
         <img {...imageProps} src={srcMed} />
       ) : (
         <img {...imageProps} />
       )}
-      <div className="absolute top-0 right-0 w-full h-full pointer-events-none bg-black bg-opacity-25 hover:bg-white">
-        hello
-      </div>
+      <ImageOverlay
+        id={id}
+        isImageInView={isImageInView}
+        userImage={userImage}
+        userName={userName}
+        userLink={userLink}
+        externalLink={externalLink}
+      />
     </figure>
   )
 }
@@ -174,13 +315,11 @@ function parseImageDataFromAPI(image) {
   const imageCreator = image?.user?.name ?? ''
   const imageCreatorLink = image?.user?.links?.html ?? ''
   const imageCreatorDP = image?.user?.profile_image?.small ?? ''
-  const isImageAnAdd = image && image.sponsorship === null ? false : true
 
   // Filter all those images which doesnt following the conditions
   if (
     imageID.length === 0 ||
     imageLowRes.length === 0 ||
-    isImageAnAdd === true ||
     imageAltText === NO_ALT_TEXT ||
     String(imageHeight) === '0' ||
     String(imageWidth) === '0'

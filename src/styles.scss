@@ -3,3 +3,11 @@
 @tailwind components;
 
 @tailwind utilities;
+
+#image-container {
+  &:hover {
+    & #image-overlay {
+      opacity: 1;
+    }
+  }
+}
