@@ -143,13 +143,6 @@ const ImageOverlay = ({
   userName = '',
   userImage = '',
 }) => {
-  const userImageProps = {
-    alt: 'user',
-    loading: 'lazy',
-    title: '',
-    className: 'h-8 w-8 object-cover rounded-full bg-white',
-  }
-
   // if no property exists then dont show the overlay
   if (
     id.length === 0 &&
@@ -181,6 +174,15 @@ const ImageOverlay = ({
       </a>
     )
   }
+
+  const userImageProps = {
+    alt: 'user',
+    loading: 'lazy',
+    title: '',
+    className:
+      'h-8 w-8 object-cover rounded-full bg-white object-cover object-center',
+  }
+
   let displayPicture = null
   if (userImage && userImage.length !== 0) {
     displayPicture = (
@@ -269,7 +271,7 @@ const Image = ({
     alt,
     loading: 'lazy',
     className:
-      'text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer',
+      'text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer object-cover object-center',
     title: alt,
     style: {
       width: '100%',
@@ -284,7 +286,12 @@ const Image = ({
   return (
     <figure id="image-container" ref={imageRef} className="group relative">
       {isImageInView ? (
-        <img {...imageProps} src={srcMed} />
+        <img
+          {...imageProps}
+          src={srcLow}
+          srcSet={`${srcLow} 200w, ${srcMed} 400w, ${srcHigh} 1080w`}
+          sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) 384px, calc(426px - 1.5rem)"
+        />
       ) : (
         <img {...imageProps} />
       )}
