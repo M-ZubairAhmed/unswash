@@ -14,15 +14,15 @@ const MASONRY_BREAKPOINTS = {
 const LogoBar = () => (
   <div className="w-full text-center flex justify-center flex-col py-6">
     <h1 className="text-6xl text-gray-600 font-extrabold">Unswash</h1>
-    <p className="text-purple-800 italic font-semibold">
+    <p className="text-purple-800 font-semibold">
       Discover breathtaking images
     </p>
   </div>
 )
 
 const SearchBar = () => (
-  <div className="w-full sticky top-0 right-0 left-0 shadow-md p-3 bg-white z-50">
-    <form className="container mx-auto bg-white py-4 flex items-center justify-center">
+  <div className="w-full sticky top-0 right-0 left-0 shadow-md px-3 py-6 bg-white z-50 bg-opacity-90">
+    <form className="container mx-auto bg-white flex items-center justify-center">
       <input
         name="search"
         className="border-t border-l border-b bg-gray-100 text-gray-900 py-2 
@@ -30,6 +30,7 @@ const SearchBar = () => (
       focus:border-gray-600 transition-all duration-300 ease-in-out"
         type="search"
         placeholder="Search images"
+        autoFocus
       />
       <button
         className="bg-purple-800 hover:bg-purple-600 border-purple-600 border-t border-r border-b transition-all duration-300 
@@ -232,8 +233,6 @@ const Image = ({
   id,
   srcLow,
   srcMed,
-  srcHigh,
-  srcUltra,
   backgroundColor,
   alt,
   originalWidth,
@@ -289,7 +288,7 @@ const Image = ({
         <img
           {...imageProps}
           src={srcLow}
-          srcSet={`${srcLow} 200w, ${srcMed} 400w, ${srcHigh} 1080w`}
+          srcSet={`${srcLow} 200w, ${srcMed} 400w`}
           sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) 384px, calc(426px - 1.5rem)"
         />
       ) : (
