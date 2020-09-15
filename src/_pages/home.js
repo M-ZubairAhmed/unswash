@@ -101,9 +101,9 @@ const ImageSkeleton = ({ index }) => {
     index % 3 === 0 ? 'h-64' : index % 2 === 0 ? 'h-56' : 'h-48'
 
   return (
-    <div class="border w-full my-2">
-      <div class="animate-pulse">
-        <div class={`bg-gray-400 ${randomHeight}`}></div>
+    <div className="border w-full my-2">
+      <div className="animate-pulse">
+        <div className={`bg-gray-400 ${randomHeight}`}></div>
       </div>
     </div>
   )
@@ -439,7 +439,7 @@ const HomePage = () => {
   })
 
   const [loadMoreRef, isLoadMoreInView] = useInView({
-    rootMargin: '150% 0%',
+    rootMargin: '200% 0%',
     trackVisibility: true,
     delay: 100,
   })

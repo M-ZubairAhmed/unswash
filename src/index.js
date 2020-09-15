@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { StrictMode } from 'react'
 import { render } from 'react-dom'
 import './styles.scss'
 
 import Home from '_pages/home'
 
 const App = () => (
-  <div>
+  <StrictMode>
     <Home />
-  </div>
+  </StrictMode>
 )
 
 render(<App />, document.getElementById('REACT_ROOT'))
