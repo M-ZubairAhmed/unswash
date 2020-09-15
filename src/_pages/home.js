@@ -96,6 +96,19 @@ function calculateImageHeight(
   return (columnWidth / originalWidth) * originalHeight
 }
 
+const ImageSkeleton = ({ index }) => {
+  const randomHeight =
+    index % 3 === 0 ? 'h-64' : index % 2 === 0 ? 'h-56' : 'h-48'
+
+  return (
+    <div class="border w-full my-2">
+      <div class="animate-pulse">
+        <div class={`bg-gray-400 ${randomHeight}`}></div>
+      </div>
+    </div>
+  )
+}
+
 const ExternalLinkIcon = () => (
   <svg
     width="1.3em"
@@ -306,6 +319,35 @@ const Image = ({
   )
 }
 
+const ImagesGrid = ({ images, widthOfContainer, isFirstTimeLoading }) => {
+  if (isFirstTimeLoading) {
+    return (
+      <Masonry
+        breakpointCols={MASONRY_BREAKPOINTS}
+        className="flex w-auto"
+        columnClassName="bg-clip-border mx-1">
+        {[...Array(13)].map((_, index) => (
+          <ImageSkeleton key={index} index={index} />
+        ))}
+      </Masonry>
+    )
+  }
+  return (
+    <Masonry
+      breakpointCols={MASONRY_BREAKPOINTS}
+      className="flex w-auto"
+      columnClassName="bg-clip-border mx-1">
+      {images.map(imageData => (
+        <Image
+          key={imageData.id}
+          widthOfContainer={widthOfContainer}
+          {...imageData}
+        />
+      ))}
+    </Masonry>
+  )
+}
+
 function parseImageDataFromAPI(image) {
   const NO_ALT_TEXT = '--No alt text provided--'
   const imageID = image?.id ?? ''
@@ -369,6 +411,7 @@ const HomePage = () => {
 
   const [images, setImages] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
+  const [isFirstTimeLoading, setFirstTimeLoadingTo] = useState(true)
 
   const imageContainerRef = useRef(null)
   const [widthOfContainer, setWidthOfContainer] = useState({
@@ -452,12 +495,19 @@ const HomePage = () => {
       if (responseData.length === 0) {
         // no images in the response
         setImages([])
+        if (isFirstTimeLoading) {
+          // remove the skeleton in any subsequent loadings
+          setFirstTimeLoadingTo(false)
+        }
       } else {
         const imagesFromAPI = responseData
           .map(responseDatum => parseImageDataFromAPI(responseDatum))
           .filter(parsedImage => parsedImage.id !== null)
 
         setImages(images => [...images, ...imagesFromAPI])
+        if (isFirstTimeLoading) {
+          setFirstTimeLoadingTo(false)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -484,18 +534,11 @@ const HomePage = () => {
       <LogoBar />
       <SearchBar />
       <div className="container mx-auto my-6" ref={imageContainerRef}>
-        <Masonry
-          breakpointCols={MASONRY_BREAKPOINTS}
-          className="flex w-auto"
-          columnClassName="bg-clip-border mx-1">
-          {images.map(imageData => (
-            <Image
-              key={imageData.id}
-              widthOfContainer={widthOfContainer}
-              {...imageData}
-            />
-          ))}
-        </Masonry>
+        <ImagesGrid
+          images={images}
+          widthOfContainer={widthOfContainer}
+          isFirstTimeLoading={isFirstTimeLoading}
+        />
         <div className="text-center py-6">
           <button
             ref={loadMoreRef}
