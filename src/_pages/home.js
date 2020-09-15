@@ -348,6 +348,25 @@ const ImagesGrid = ({ images, widthOfContainer, isFirstTimeLoading }) => {
   )
 }
 
+const LoadMoreButton = ({
+  loadMoreRef,
+  handleLoadMore,
+  isFirstTimeLoading,
+}) => {
+  if (isFirstTimeLoading) {
+    return null
+  }
+  return (
+    <div className="text-center py-6" ref={loadMoreRef}>
+      <button
+        className="text-gray-500 text-xl hover:underline"
+        onClick={handleLoadMore}>
+        Load more
+      </button>
+    </div>
+  )
+}
+
 function parseImageDataFromAPI(image) {
   const NO_ALT_TEXT = '--No alt text provided--'
   const imageID = image?.id ?? ''
@@ -539,14 +558,11 @@ const HomePage = () => {
           widthOfContainer={widthOfContainer}
           isFirstTimeLoading={isFirstTimeLoading}
         />
-        <div className="text-center py-6">
-          <button
-            ref={loadMoreRef}
-            className="text-gray-500 text-xl hover:underline"
-            onClick={handleLoadMore}>
-            Load more
-          </button>
-        </div>
+        <LoadMoreButton
+          loadMoreRef={loadMoreRef}
+          handleLoadMore={handleLoadMore}
+          isFirstTimeLoading={isFirstTimeLoading}
+        />
       </div>
     </>
   )
