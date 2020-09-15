@@ -12,6 +12,18 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 }
 
+function scrollToTop(isSmooth) {
+  if (document && typeof document !== 'undefined') {
+    const topScrollElement = document.getElementById('SCROLL-TO-TOP-ELEMENT')
+
+    topScrollElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'start',
+    })
+  }
+}
+
 const LogoBar = () => (
   <div className="w-full text-center flex justify-center flex-col py-6">
     <h1 className="text-6xl text-gray-600 font-extrabold">Unswash</h1>
@@ -481,6 +493,7 @@ const HomePage = () => {
       window.addEventListener('resize', handleBrowserResize)
       handleBrowserResize()
     }
+    scrollToTop()
 
     // clean up functions
     return () => {
