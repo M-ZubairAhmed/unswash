@@ -1,6 +1,6 @@
 import React, { StrictMode, Suspense, lazy } from 'react'
 import { render } from 'react-dom'
-import { BrowserRouter, Switch, Route } from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 
 import './styles.scss'
 
@@ -39,10 +39,11 @@ const App = () => (
     <BrowserRouter>
       <Suspense fallback={<Loader />}>
         <Switch>
-          <Route path="/images/:imageID" component={ImageViewPage} />
-          <Route path="/images" component={ImageViewPage} />
-
           <Route exact path="/" component={HomePage} />
+          <Route path="/images/:imageID" component={ImageViewPage} />
+          <Route path="/images">
+            <Redirect to="/" />
+          </Route>
         </Switch>
       </Suspense>
     </BrowserRouter>
