@@ -3,7 +3,7 @@ import axios from 'axios'
 import Masonry from 'react-masonry-css'
 import invert from 'invert-color'
 import { useInView } from 'react-intersection-observer'
-import { Link } from 'react-router-dom'
+import { Link, useHistory, useLocation } from 'react-router-dom'
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -12,7 +12,7 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 }
 
-function scrollToTop(isSmooth) {
+function scrollToTop() {
   if (document && typeof document !== 'undefined') {
     const topScrollElement = document.getElementById('SCROLL-TO-TOP-ELEMENT')
 
@@ -33,9 +33,11 @@ const LogoBar = () => (
   </div>
 )
 
-const SearchBar = () => (
+const SearchBar = ({ onSearchSubmit, searchKeyword, onSearchInputChange }) => (
   <div className="w-full sticky top-0 right-0 left-0 shadow-md px-3 py-6 bg-white z-50 bg-opacity-90">
-    <form className="container mx-auto bg-white flex items-center justify-center">
+    <form
+      className="container mx-auto bg-white flex items-center justify-center"
+      onSubmit={onSearchSubmit}>
       <input
         name="search"
         className="border-t border-l border-b bg-gray-100 text-gray-900 py-2 
@@ -44,14 +46,17 @@ const SearchBar = () => (
         type="search"
         placeholder="Search images"
         autoFocus
+        value={searchKeyword}
+        onChange={onSearchInputChange}
       />
       <button
-        className="bg-purple-800 hover:bg-purple-600 border-purple-600 border-t border-r border-b transition-all duration-300 
-          ease-in-out text-white py-2 px-4 rounded-tr-lg rounded-br-lg inline-flex items-center justify-center "
+        className={`hover:bg-purple-600 border-t border-r border-b transition-all duration-300 transition-all
+          ease-in-out text-white py-2 px-4 rounded-tr-lg rounded-br-lg inline-flex items-center justify-center
+              bg-purple-800 border-purple-600`}
         type="submit">
         &zwnj;
         <SearchIcon />
-        <span className=" hidden sm:block md:block ml-3">Search</span>
+        <span className="hidden sm:block md:block ml-3">Search</span>
       </button>
     </form>
   </div>
@@ -338,14 +343,18 @@ const Image = ({
   )
 }
 
-const ImagesGrid = ({ images, widthOfContainer, isFirstTimeLoading }) => {
-  if (isFirstTimeLoading) {
+const ImagesGrid = ({
+  images,
+  widthOfContainer,
+  shouldDisplayImageSkeleton,
+}) => {
+  if (shouldDisplayImageSkeleton) {
     return (
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
         className="flex w-auto"
         columnClassName="bg-clip-border mx-1">
-        {[...Array(13)].map((_, index) => (
+        {[...Array(12)].map((_, index) => (
           <ImageSkeleton key={index} index={index} />
         ))}
       </Masonry>
@@ -356,7 +365,7 @@ const ImagesGrid = ({ images, widthOfContainer, isFirstTimeLoading }) => {
       breakpointCols={MASONRY_BREAKPOINTS}
       className="flex w-auto"
       columnClassName="bg-clip-border mx-1">
-      {images.map(imageData => (
+      {images.collection.map(imageData => (
         <Image
           key={imageData.id}
           widthOfContainer={widthOfContainer}
@@ -367,21 +376,35 @@ const ImagesGrid = ({ images, widthOfContainer, isFirstTimeLoading }) => {
   )
 }
 
-const LoadMoreButton = ({
+const MoreImageLoading = ({
   loadMoreRef,
-  handleLoadMore,
-  isFirstTimeLoading,
+  shouldDisplayImageSkeleton,
+  totalPages,
+  currentPage,
+  searchTextParam,
 }) => {
-  if (isFirstTimeLoading) {
+  // while loading skeleton is shown
+  if (shouldDisplayImageSkeleton) {
     return null
   }
+
+  // while no results can be displayed
+  if (
+    totalPages === 0 && currentPage === 1 &&
+    searchTextParam.length !== 0
+  ) {
+    return <div>No results for your query</div>
+  }
+
+  // while no more results are available
+  if(totalPages !== 0 && currentPage === totalPages){
+    return <div>Thats all folks</div>
+  }
+  
+  // while infinite scroll is taking place
   return (
-    <div className="text-center py-6" ref={loadMoreRef}>
-      <button
-        className="text-gray-500 text-xl hover:underline"
-        onClick={handleLoadMore}>
-        Load more
-      </button>
+    <div className="text-center py-6 text-gray-600 font-bold" ref={loadMoreRef}>
+      Loading
     </div>
   )
 }
@@ -447,10 +470,6 @@ function parseImageDataFromAPI(image) {
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
 
-  const [images, setImages] = useState([])
-  const [pageNumber, setPageNumber] = useState(1)
-  const [isFirstTimeLoading, setFirstTimeLoadingTo] = useState(true)
-
   const imageContainerRef = useRef(null)
   const [widthOfContainer, setWidthOfContainer] = useState({
     viewport: 0,
@@ -463,64 +482,33 @@ const HomePage = () => {
     delay: 100,
   })
 
-  function handleBrowserResize() {
-    const viewportWidth =
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth ||
-      0
+  const history = useHistory()
 
-    const masonryWidth =
-      imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
-        ?.width ?? 0
+  const location = useLocation()
+  const urlParams = new URLSearchParams(location.search)
+  const searchTextParam = urlParams.has('search') ? urlParams.get('search') : ''
 
-    // skip resetting if values didnt change
-    if (
-      widthOfContainer.viewport === viewportWidth &&
-      widthOfContainer.masonry === masonryWidth
-    ) {
-      return
+  const [searchKeyword, setSearchKeyword] = useState(searchTextParam)
+  const [shouldDisplayImageSkeleton, setImageSkeletonDisplayTo] = useState(true)
+
+  const pageNumber = useRef()
+  const [images, setImages] = useState({ totalPages: 0, collection: [] })
+
+  async function doFetchRandomImages() {
+    if (pageNumber.current === 1) {
+      scrollToTop()
+      setImageSkeletonDisplayTo(true)
     }
-    // console.log('resize', viewportWidth, masonryWidth)
 
-    setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
-  }
-
-  // effect running on first mount of component for browser resize
-  useEffect(() => {
-    if (typeof window !== undefined) {
-      // Add resize event listerer for recalculating image height based on width change
-      window.addEventListener('resize', handleBrowserResize)
-      handleBrowserResize()
-    }
-    scrollToTop()
-
-    // clean up functions
-    return () => {
-      console.log('unm1')
-      if (typeof window !== undefined) {
-        window.removeEventListener('resize', handleBrowserResize)
-      }
-    }
-  }, [])
-
-  async function doFetchImages(searchKey = '', pageNumber) {
-    const isSearchActive = searchKey.trim().length !== 0
-    const listImagesSubroute = isSearchActive ? '/search/photos' : '/photos'
-
-    const listImagesURL = new URL(listImagesSubroute, process.env.API_BASE_URL)
-
-    listImagesURL.searchParams.append('page', pageNumber)
-    listImagesURL.searchParams.append('per_page', '20')
-    listImagesURL.searchParams.append('content_filter', 'high')
-    if (isSearchActive) {
-      listImagesURL.searchParams.append('query', '')
-    }
+    const randomImagesURL = new URL('/photos', process.env.API_BASE_URL)
+    randomImagesURL.searchParams.append('page', pageNumber.current)
+    randomImagesURL.searchParams.append('per_page', '21')
+    randomImagesURL.searchParams.append('content_filter', 'high')
 
     try {
       const response = await axios({
         method: 'GET',
-        url: listImagesURL.toString(),
+        url: randomImagesURL.toString(),
         headers: {
           'Content-Type': 'application/json',
           'Accept-Version': 'v1',
@@ -533,55 +521,211 @@ const HomePage = () => {
 
       if (responseData.length === 0) {
         // no images in the response
-        setImages([])
-        if (isFirstTimeLoading) {
-          // remove the skeleton in any subsequent loadings
-          setFirstTimeLoadingTo(false)
-        }
+        setImages({ totalPages: 0, collection: [] })
       } else {
         const imagesFromAPI = responseData
           .map(responseDatum => parseImageDataFromAPI(responseDatum))
           .filter(parsedImage => parsedImage.id !== null)
 
-        setImages(images => [...images, ...imagesFromAPI])
-        if (isFirstTimeLoading) {
-          setFirstTimeLoadingTo(false)
-        }
+        setImages(images => {
+          const allImages = [...images.collection, ...imagesFromAPI]
+          return { totalPages: null, collection: allImages }
+        })
       }
+
+      setImageSkeletonDisplayTo(false)
     } catch (err) {
       console.error(err)
+      setImageSkeletonDisplayTo(false)
     }
   }
 
-  useEffect(() => {
-    // Function call for the unspash api based on search or random photos
-    doFetchImages('', pageNumber)
-  }, [pageNumber])
+  async function doFetchFilteredImages(searchQuery = '') {
+    if (pageNumber.current === 1) {
+      scrollToTop()
+      setImageSkeletonDisplayTo(true)
+    }
 
-  function handleLoadMore() {
-    setPageNumber(previousPageNumber => previousPageNumber + 1)
+    const filteredImagesURL = new URL(
+      '/search/photos',
+      process.env.API_BASE_URL,
+    )
+    filteredImagesURL.searchParams.append('page', pageNumber.current)
+    filteredImagesURL.searchParams.append('per_page', '21')
+    filteredImagesURL.searchParams.append('content_filter', 'high')
+    filteredImagesURL.searchParams.append('query', searchQuery)
+
+    try {
+      const response = await axios({
+        method: 'GET',
+        url: filteredImagesURL.toString(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Version': 'v1',
+          Authorization: `Client-ID ${process.env.API_ACCESS_KEY}`,
+        },
+        cancelToken: networkCancellation.token,
+      })
+
+      const responseData = response?.data ?? {}
+
+      if (
+        Object.keys(responseData).length === 0 ||
+        responseData.results.length === 0
+      ) {
+        // no images in the response
+        setImages({ totalPages: 0, collection: [] })
+      } else {
+        const imagesFromAPI = responseData.results
+          .map(responseDatum => parseImageDataFromAPI(responseDatum))
+          .filter(parsedImage => parsedImage.id !== null)
+
+        setImages(images => {
+          const totalPages = responseData['total_pages']
+          // we are at start of search
+          if (pageNumber.current === 1) {
+            return { pageNumber, collection: imagesFromAPI }
+          } else {
+            // we are paginating
+            const allImages = [...images.collection, ...imagesFromAPI]
+            return { totalPages, collection: allImages }
+          }
+        })
+      }
+
+      setImageSkeletonDisplayTo(false)
+    } catch (err) {
+      console.error(err)
+      setImageSkeletonDisplayTo(false)
+    }
   }
 
+  // effect for browser resize
+  useEffect(() => {
+    function handleBrowserResize() {
+      const viewportWidth =
+        window.innerWidth ||
+        document.documentElement.clientWidth ||
+        document.body.clientWidth ||
+        0
+
+      const masonryWidth =
+        imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
+          ?.width ?? 0
+
+      // skip resetting if values didnt change
+      if (
+        widthOfContainer.viewport === viewportWidth &&
+        widthOfContainer.masonry === masonryWidth
+      ) {
+        return
+      }
+      // console.log('resize', viewportWidth, masonryWidth)
+
+      setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
+    }
+
+    if (typeof window !== undefined) {
+      // Add resize event listerer for recalculating image height based on width change
+      window.addEventListener('resize', handleBrowserResize)
+      handleBrowserResize()
+    }
+
+    // clean up functions
+    return () => {
+      if (typeof window !== undefined) {
+        window.removeEventListener('resize', handleBrowserResize)
+      }
+    }
+  }, [])
+
+  // effect running on first mount for random images
+  useEffect(() => {
+    // set initial value of page number
+    pageNumber.current = 1
+
+    if (searchTextParam.length === 0) {
+      doFetchRandomImages()
+    }
+    return () => {
+      networkCancellation.cancel('Network cancel')
+    }
+  }, [])
+
+  // effect running after user reaches bottom threshold
   useEffect(() => {
     if (isLoadMoreInView) {
-      handleLoadMore()
+      pageNumber.current = pageNumber.current + 1
+
+      if (searchTextParam.length === 0) {
+        // paginate random images
+        doFetchRandomImages()
+      } else {
+        // paginate search results
+        doFetchFilteredImages(searchTextParam)
+      }
     }
   }, [isLoadMoreInView])
+
+  // effect running after search was applied
+  useEffect(() => {
+    if (searchTextParam.length !== 0) {
+      // reset the page number
+      pageNumber.current = 1
+
+      // perform search
+      doFetchFilteredImages(searchTextParam, false)
+    }
+  }, [searchTextParam])
+
+  function onSearchInputChange(event) {
+    const {
+      target: { value },
+    } = event
+    setSearchKeyword(value)
+  }
+
+  function onSearchSubmit(event) {
+    event.preventDefault()
+
+    if (searchKeyword.trim().length === 0) {
+      return
+    }
+
+    const searchParams = new URLSearchParams(location.search)
+
+    if (searchParams.has('search')) {
+      // Delete any existing search if present
+      searchParams.delete('search')
+    }
+    searchParams.set('search', searchKeyword.trim())
+
+    const locationWithSearchQuery = `${
+      location.pathname
+    }?${searchParams.toString()}`
+    history.push(locationWithSearchQuery)
+  }
 
   return (
     <>
       <LogoBar />
-      <SearchBar />
+      <SearchBar
+        searchKeyword={searchKeyword}
+        onSearchInputChange={onSearchInputChange}
+        onSearchSubmit={onSearchSubmit}
+      />
       <div className="container mx-auto my-6" ref={imageContainerRef}>
         <ImagesGrid
           images={images}
           widthOfContainer={widthOfContainer}
-          isFirstTimeLoading={isFirstTimeLoading}
+          shouldDisplayImageSkeleton={shouldDisplayImageSkeleton}
         />
-        <LoadMoreButton
+        <MoreImageLoading
+          totalPages={images.totalPages}
           loadMoreRef={loadMoreRef}
-          handleLoadMore={handleLoadMore}
-          isFirstTimeLoading={isFirstTimeLoading}
+          shouldDisplayImageSkeleton={shouldDisplayImageSkeleton}
+          currentPage={pageNumber.current}
+          searchTextParam={searchTextParam}
         />
       </div>
     </>
