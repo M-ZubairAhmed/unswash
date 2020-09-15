@@ -3,9 +3,9 @@ module.exports = {
   theme: {
     extend: {
       backgroundOpacity: {
-         '90': '0.90',
-      }
-    }
+        90: '0.90',
+      },
+    },
   },
   variants: {},
   plugins: [],
