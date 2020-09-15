@@ -3,6 +3,7 @@ import axios from 'axios'
 import Masonry from 'react-masonry-css'
 import invert from 'invert-color'
 import { useInView } from 'react-intersection-observer'
+import { Link } from 'react-router-dom'
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -169,11 +170,12 @@ const ImageOverlay = ({
   let fullImageButton = null
   if (id && id.length !== 0) {
     fullImageButton = (
-      <a
-        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded"
+      <Link
+        to={`/images/${id}`}
+        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded pointer-events-auto"
         title="View full image">
         <ZoomIcon />
-      </a>
+      </Link>
     )
   }
 
@@ -182,7 +184,9 @@ const ImageOverlay = ({
     externalImageButton = (
       <a
         href={externalLink}
-        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded ml-4"
+        rel="noopener noreferrer"
+        target="_blank"
+        className="inline bg-gray-100 hover:bg-gray-200 text-black font-bold p-2 rounded ml-4 pointer-events-auto"
         title="View image at Unsplash">
         <ExternalLinkIcon />
       </a>
@@ -194,13 +198,13 @@ const ImageOverlay = ({
     loading: 'lazy',
     title: '',
     className:
-      'h-8 w-8 object-cover rounded-full bg-white object-cover object-center',
+      'h-8 w-8 object-cover rounded-full bg-white object-cover object-center pointer-events-auto',
   }
 
   let displayPicture = null
   if (userImage && userImage.length !== 0) {
     displayPicture = (
-      <a href={userLink} rel="noopener noreferrer">
+      <a href={userLink} rel="noopener noreferrer" target="_blank">
         {isImageInView ? (
           <img src={userImage} {...userImageProps} />
         ) : (
@@ -216,7 +220,8 @@ const ImageOverlay = ({
       <a
         href={userLink}
         rel="noopener noreferrer"
-        className="font-semibold tracking-wide text-gray-300 truncate ml-4 hover:text-white"
+        target="_blank"
+        className="font-semibold tracking-wide text-gray-300 truncate ml-4 hover:text-white pointer-events-auto"
         title={userName}>
         {userName}
       </a>
@@ -226,8 +231,8 @@ const ImageOverlay = ({
   return (
     <div
       id="image-overlay"
-      className="absolute top-0 right-0 w-full h-full bg-black bg-opacity-50 z-10 
-      transition-opacity duration-500 ease-in-out opacity-0 hover:text-red
+      className="absolute top-0 right-0 w-full h-full bg-black bg-opacity-50 z-10
+      transition-opacity duration-500 ease-in-out opacity-0 hover:text-red pointer-events-none
       flex flex-col justify-between p-6"
       title={alt}>
       <div className="text-right">
@@ -296,17 +301,19 @@ const Image = ({
   }
 
   return (
-    <figure id="image-container" ref={imageRef} className="group relative">
-      {isImageInView ? (
-        <img
-          {...imageProps}
-          src={srcLow}
-          srcSet={`${srcLow} 200w, ${srcMed} 400w`}
-          sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) 384px, calc(426px - 1.5rem)"
-        />
-      ) : (
-        <img {...imageProps} />
-      )}
+    <figure id="image-container" ref={imageRef} className="relative">
+      <Link to={`/images/${id}`}>
+        {isImageInView ? (
+          <img
+            {...imageProps}
+            src={srcLow}
+            srcSet={`${srcLow} 200w, ${srcMed} 400w`}
+            sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) 384px, calc(426px - 1.5rem)"
+          />
+        ) : (
+          <img {...imageProps} />
+        )}
+      </Link>
       <ImageOverlay
         id={id}
         isImageInView={isImageInView}
