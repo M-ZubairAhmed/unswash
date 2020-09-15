@@ -389,18 +389,15 @@ const MoreImageLoading = ({
   }
 
   // while no results can be displayed
-  if (
-    totalPages === 0 && currentPage === 1 &&
-    searchTextParam.length !== 0
-  ) {
+  if (totalPages === 0 && currentPage === 1 && searchTextParam.length !== 0) {
     return <div>No results for your query</div>
   }
 
   // while no more results are available
-  if(totalPages !== 0 && currentPage === totalPages){
+  if (totalPages !== 0 && currentPage === totalPages) {
     return <div>Thats all folks</div>
   }
-  
+
   // while infinite scroll is taking place
   return (
     <div className="text-center py-6 text-gray-600 font-bold" ref={loadMoreRef}>
