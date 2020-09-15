@@ -10,6 +10,9 @@ const HomePage = lazy(() =>
 const ImageViewPage = lazy(() =>
   import(/* webpackChunkName: "image-view" */ '_pages/image-view'),
 )
+const PageNotFound = lazy(() =>
+  import(/* webpackChunkName: "page-not-found" */ '_pages/404'),
+)
 
 const Loader = () => (
   <div className="flex justify-center h-screen items-center flex-col">
@@ -44,6 +47,7 @@ const App = () => (
           <Route path="/images">
             <Redirect to="/" />
           </Route>
+          <Route component={PageNotFound} />
         </Switch>
       </Suspense>
     </BrowserRouter>
