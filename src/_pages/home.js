@@ -743,7 +743,7 @@ const HomePage = () => {
     const locationWithSearchQuery = `${
       location.pathname
     }?${searchParams.toString()}`
-    
+
     history.push(locationWithSearchQuery)
   }
 
