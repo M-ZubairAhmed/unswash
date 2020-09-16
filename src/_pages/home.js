@@ -33,30 +33,48 @@ const LogoBar = () => (
   </div>
 )
 
-const SearchBar = ({ onSearchSubmit, searchKeyword, onSearchInputChange }) => (
+const SearchBar = ({
+  onSearchSubmit,
+  searchKeyword,
+  onSearchInputChange,
+  onSearchReset,
+}) => (
   <div className="w-full sticky top-0 right-0 left-0 shadow-md px-3 py-6 bg-white z-50 bg-opacity-90">
     <form
-      className="container mx-auto bg-white flex items-center justify-center"
-      onSubmit={onSearchSubmit}>
-      <input
-        name="search"
-        className="border-t border-l border-b bg-gray-100 text-gray-900 py-2 
-      px-3 rounded-bl-lg rounded-tl-lg focus:bg-white border-gray-400 flex-grow w-full lg:w-10/12 xl:w-10/12
-      focus:border-gray-600 transition-all duration-300 ease-in-out"
-        type="search"
-        placeholder="Search images"
-        autoFocus
-        value={searchKeyword}
-        onChange={onSearchInputChange}
-      />
+      className="container mx-auto bg-white flex items-center justify-center relative"
+      onSubmit={onSearchSubmit}
+      onReset={onSearchReset}>
+      <div className="relative w-full flex items-center">
+        <input
+          name="search"
+          className="border-t border-l border-b bg-gray-100 text-gray-900 py-2 
+        px-3 rounded-bl-lg rounded-tl-lg focus:bg-white border-gray-400 flex-grow w-full lg:w-10/12 xl:w-10/12
+        focus:border-gray-600 transition-all duration-300 ease-in-out flex-grow-1"
+          type="search"
+          placeholder="Search images"
+          autoFocus
+          value={searchKeyword}
+          onChange={onSearchInputChange}
+        />
+        <button
+          className={`absolute ${
+            searchKeyword.length === 0 ? 'opacity-0' : ''
+          } transition-all duration-300 right-0 top-0 mt-0 bottom-0 pr-2 text-xs rounded border border-gray-400 px-3
+          hover:bg-gray-200 ease-in-out flex justify-center items-center bg-white py-2 sm:py-0 sm:mt-3 sm:mr-3 sm:bottom-auto sm:rounded-full`}
+          type="reset"
+          title="Clear search">
+          <span className="hidden sm:block mr-1">CLEAR</span>&#x58;
+        </button>
+      </div>
       <button
-        className={`hover:bg-purple-600 border-t border-r border-b transition-all duration-300 transition-all
+        className={`hover:bg-purple-600 border-t border-r border-b transition-colors duration-300
           ease-in-out text-white py-2 px-4 rounded-tr-lg rounded-br-lg inline-flex items-center justify-center
               bg-purple-800 border-purple-600`}
-        type="submit">
+        type="submit"
+        title="Start search">
         &zwnj;
         <SearchIcon />
-        <span className="hidden sm:block md:block ml-3">Search</span>
+        <span className="hidden sm:block ml-3">Search</span>
       </button>
     </form>
   </div>
@@ -528,6 +546,17 @@ const HomePage = () => {
           const allImages = [...images.collection, ...imagesFromAPI]
           return { totalPages: null, collection: allImages }
         })
+        setImages(images => {
+          const totalPages = null   
+          // we are at start of random images or cleared the search
+          if (pageNumber.current === 1) {
+            return { totalPages, collection: imagesFromAPI }
+          } else {
+            // we are paginating
+            const allImages = [...images.collection, ...imagesFromAPI]
+            return { totalPages, collection: allImages }
+          }
+        })
       }
 
       setImageSkeletonDisplayTo(false)
@@ -581,7 +610,7 @@ const HomePage = () => {
           const totalPages = responseData['total_pages']
           // we are at start of search
           if (pageNumber.current === 1) {
-            return { pageNumber, collection: imagesFromAPI }
+            return { totalPages, collection: imagesFromAPI }
           } else {
             // we are paginating
             const allImages = [...images.collection, ...imagesFromAPI]
@@ -636,19 +665,6 @@ const HomePage = () => {
     }
   }, [])
 
-  // effect running on first mount for random images
-  useEffect(() => {
-    // set initial value of page number
-    pageNumber.current = 1
-
-    if (searchTextParam.length === 0) {
-      doFetchRandomImages()
-    }
-    return () => {
-      networkCancellation.cancel('Network cancel')
-    }
-  }, [])
-
   // effect running after user reaches bottom threshold
   useEffect(() => {
     if (isLoadMoreInView) {
@@ -664,16 +680,24 @@ const HomePage = () => {
     }
   }, [isLoadMoreInView])
 
-  // effect running after search was applied
+  // effect running after search was applied or removed
   useEffect(() => {
     if (searchTextParam.length !== 0) {
       // reset the page number
       pageNumber.current = 1
-
-      // perform search
       doFetchFilteredImages(searchTextParam, false)
+    } else {
+      // set initial value of page number
+      pageNumber.current = 1
+      doFetchRandomImages()
     }
   }, [searchTextParam])
+
+  useEffect(() => {
+    return () => {
+      networkCancellation.cancel('Network cancel')
+    }
+  }, [])
 
   function onSearchInputChange(event) {
     const {
@@ -703,6 +727,17 @@ const HomePage = () => {
     history.push(locationWithSearchQuery)
   }
 
+  function onSearchReset(event) {
+    event.preventDefault()
+
+    // just clear the search if no search param is present
+    if (searchTextParam.length === 0) {
+      setSearchKeyword('')
+    } else {
+      history.push(location.pathname)
+    }
+  }
+
   return (
     <>
       <LogoBar />
@@ -710,6 +745,7 @@ const HomePage = () => {
         searchKeyword={searchKeyword}
         onSearchInputChange={onSearchInputChange}
         onSearchSubmit={onSearchSubmit}
+        onSearchReset={onSearchReset}
       />
       <div className="container mx-auto my-6" ref={imageContainerRef}>
         <ImagesGrid
