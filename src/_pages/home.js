@@ -19,7 +19,7 @@ function scrollToTop() {
     topScrollElement.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
-      inline: 'start',
+      inline: 'nearest',
     })
   }
 }
@@ -364,63 +364,70 @@ const Image = ({
 const ImagesGrid = ({
   images,
   widthOfContainer,
-  shouldDisplayImageSkeleton,
+  isShowingLoader,
+  masonryRef,
 }) => {
-  if (shouldDisplayImageSkeleton) {
+  if (isShowingLoader) {
     return (
+      <main className="container mx-auto my-6" ref={masonryRef}>
+        <Masonry
+          breakpointCols={MASONRY_BREAKPOINTS}
+          className="flex w-auto"
+          columnClassName="bg-clip-border mx-1">
+          {[...Array(12)].map((_, index) => (
+            <ImageSkeleton key={index} index={index} />
+          ))}
+        </Masonry>
+      </main>
+    )
+  }
+  return (
+    <main className="container mx-auto my-6" ref={masonryRef}>
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
         className="flex w-auto"
         columnClassName="bg-clip-border mx-1">
-        {[...Array(12)].map((_, index) => (
-          <ImageSkeleton key={index} index={index} />
+        {images.collection.map(imageData => (
+          <Image
+            key={imageData.id}
+            widthOfContainer={widthOfContainer}
+            {...imageData}
+          />
         ))}
       </Masonry>
-    )
-  }
-  return (
-    <Masonry
-      breakpointCols={MASONRY_BREAKPOINTS}
-      className="flex w-auto"
-      columnClassName="bg-clip-border mx-1">
-      {images.collection.map(imageData => (
-        <Image
-          key={imageData.id}
-          widthOfContainer={widthOfContainer}
-          {...imageData}
-        />
-      ))}
-    </Masonry>
+    </main>
   )
 }
 
-const MoreImageLoading = ({
-  loadMoreRef,
-  shouldDisplayImageSkeleton,
+const Footer = ({
+  endOfPageRef,
+  isShowingLoader,
   totalPages,
   currentPage,
   searchTextParam,
 }) => {
   // while loading skeleton is shown
-  if (shouldDisplayImageSkeleton) {
+  if (isShowingLoader) {
     return null
   }
 
   // while no results can be displayed
   if (totalPages === 0 && currentPage === 1 && searchTextParam.length !== 0) {
-    return <div>No results for your query</div>
+    return <footer>No results for your query</footer>
   }
 
   // while no more results are available
   if (totalPages !== 0 && currentPage === totalPages) {
-    return <div>Thats all folks</div>
+    return <footer>Thats all folks</footer>
   }
 
   // while infinite scroll is taking place
   return (
-    <div className="text-center py-6 text-gray-600 font-bold" ref={loadMoreRef}>
+    <footer
+      className="text-center py-6 text-gray-600 font-bold"
+      ref={endOfPageRef}>
       Loading
-    </div>
+    </footer>
   )
 }
 
@@ -485,13 +492,13 @@ function parseImageDataFromAPI(image) {
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
 
-  const imageContainerRef = useRef(null)
+  const masonryRef = useRef(null)
   const [widthOfContainer, setWidthOfContainer] = useState({
     viewport: 0,
     masonry: 0,
   })
 
-  const [loadMoreRef, isLoadMoreInView] = useInView({
+  const [endOfPageRef, reachedEndOfPage] = useInView({
     rootMargin: '200% 0%',
     trackVisibility: true,
     delay: 100,
@@ -504,19 +511,17 @@ const HomePage = () => {
   const searchTextParam = urlParams.has('search') ? urlParams.get('search') : ''
 
   const [searchKeyword, setSearchKeyword] = useState(searchTextParam)
-  const [shouldDisplayImageSkeleton, setImageSkeletonDisplayTo] = useState(true)
-
   const pageNumber = useRef()
   const [images, setImages] = useState({ totalPages: 0, collection: [] })
+  const [isShowingLoader, setLoaderTo] = useState(true)
 
-  async function doFetchRandomImages() {
-    if (pageNumber.current === 1) {
-      scrollToTop()
-      setImageSkeletonDisplayTo(true)
+  async function doFetchRandomImages(page) {
+    if (page === 1) {
+      setLoaderTo(true)
     }
 
     const randomImagesURL = new URL('/photos', process.env.API_BASE_URL)
-    randomImagesURL.searchParams.append('page', pageNumber.current)
+    randomImagesURL.searchParams.append('page', page)
     randomImagesURL.searchParams.append('per_page', '21')
     randomImagesURL.searchParams.append('content_filter', 'high')
 
@@ -543,13 +548,9 @@ const HomePage = () => {
           .filter(parsedImage => parsedImage.id !== null)
 
         setImages(images => {
-          const allImages = [...images.collection, ...imagesFromAPI]
-          return { totalPages: null, collection: allImages }
-        })
-        setImages(images => {
           const totalPages = null
           // we are at start of random images or cleared the search
-          if (pageNumber.current === 1) {
+          if (page === 1) {
             return { totalPages, collection: imagesFromAPI }
           } else {
             // we are paginating
@@ -559,7 +560,7 @@ const HomePage = () => {
         })
       }
 
-      setImageSkeletonDisplayTo(false)
+      setLoaderTo(false)
     } catch (err) {
       console.error(err)
       if (err && err.message) {
@@ -567,25 +568,24 @@ const HomePage = () => {
           // Lands here when cancel token is cleared
           // Dont set any state here as user has moved to other page
         } else {
-          setImageSkeletonDisplayTo(false)
+          setLoaderTo(false)
         }
       } else {
-        setImageSkeletonDisplayTo(false)
+        setLoaderTo(false)
       }
     }
   }
 
-  async function doFetchFilteredImages(searchQuery = '') {
-    if (pageNumber.current === 1) {
-      scrollToTop()
-      setImageSkeletonDisplayTo(true)
+  async function doFetchFilteredImages(page, searchQuery = '') {
+    if (page === 1) {
+      setLoaderTo(true)
     }
 
     const filteredImagesURL = new URL(
       '/search/photos',
       process.env.API_BASE_URL,
     )
-    filteredImagesURL.searchParams.append('page', pageNumber.current)
+    filteredImagesURL.searchParams.append('page', page)
     filteredImagesURL.searchParams.append('per_page', '21')
     filteredImagesURL.searchParams.append('content_filter', 'high')
     filteredImagesURL.searchParams.append('query', searchQuery)
@@ -618,7 +618,7 @@ const HomePage = () => {
         setImages(images => {
           const totalPages = responseData['total_pages']
           // we are at start of search
-          if (pageNumber.current === 1) {
+          if (page === 1) {
             return { totalPages, collection: imagesFromAPI }
           } else {
             // we are paginating
@@ -628,7 +628,7 @@ const HomePage = () => {
         })
       }
 
-      setImageSkeletonDisplayTo(false)
+      setLoaderTo(false)
     } catch (err) {
       console.error(err)
       if (err && err.message) {
@@ -636,10 +636,10 @@ const HomePage = () => {
           // Lands here when cancel token is cleared
           // Dont set any state here as user has moved to other page
         } else {
-          setImageSkeletonDisplayTo(false)
+          setLoaderTo(false)
         }
       } else {
-        setImageSkeletonDisplayTo(false)
+        setLoaderTo(false)
       }
     }
   }
@@ -654,8 +654,7 @@ const HomePage = () => {
         0
 
       const masonryWidth =
-        imageContainerRef?.current?.children?.[0]?.getBoundingClientRect()
-          ?.width ?? 0
+        masonryRef?.current?.children?.[0]?.getBoundingClientRect()?.width ?? 0
 
       // skip resetting if values didnt change
       if (
@@ -685,29 +684,33 @@ const HomePage = () => {
 
   // effect running after user reaches bottom threshold
   useEffect(() => {
-    if (isLoadMoreInView) {
+    if (reachedEndOfPage) {
       pageNumber.current = pageNumber.current + 1
 
       if (searchTextParam.length === 0) {
         // paginate random images
-        doFetchRandomImages()
+        doFetchRandomImages(pageNumber.current)
       } else {
         // paginate search results
-        doFetchFilteredImages(searchTextParam)
+        doFetchFilteredImages(pageNumber.current, searchTextParam)
       }
     }
-  }, [isLoadMoreInView])
+  }, [reachedEndOfPage])
 
   // effect running after search was applied or removed
   useEffect(() => {
     if (searchTextParam.length !== 0) {
       // reset the page number
       pageNumber.current = 1
-      doFetchFilteredImages(searchTextParam, false)
+      scrollToTop()
+
+      doFetchFilteredImages(1, searchTextParam)
     } else {
       // set initial value of page number
       pageNumber.current = 1
-      doFetchRandomImages()
+      scrollToTop()
+
+      doFetchRandomImages(1)
     }
   }, [searchTextParam])
 
@@ -768,20 +771,19 @@ const HomePage = () => {
         onSearchSubmit={onSearchSubmit}
         onSearchReset={onSearchReset}
       />
-      <div className="container mx-auto my-6" ref={imageContainerRef}>
-        <ImagesGrid
-          images={images}
-          widthOfContainer={widthOfContainer}
-          shouldDisplayImageSkeleton={shouldDisplayImageSkeleton}
-        />
-        <MoreImageLoading
-          totalPages={images.totalPages}
-          loadMoreRef={loadMoreRef}
-          shouldDisplayImageSkeleton={shouldDisplayImageSkeleton}
-          currentPage={pageNumber.current}
-          searchTextParam={searchTextParam}
-        />
-      </div>
+      <ImagesGrid
+        masonryRef={masonryRef}
+        images={images}
+        widthOfContainer={widthOfContainer}
+        isShowingLoader={isShowingLoader}
+      />
+      <Footer
+        totalPages={images.totalPages}
+        endOfPageRef={endOfPageRef}
+        isShowingLoader={isShowingLoader}
+        currentPage={pageNumber.current}
+        searchTextParam={searchTextParam}
+      />
     </>
   )
 }
