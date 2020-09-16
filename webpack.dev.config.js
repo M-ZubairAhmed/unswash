@@ -4,7 +4,7 @@ const htmlWebpackPlugin = require('html-webpack-plugin')
 const dotenv = require('dotenv')
 
 const envVars = dotenv.config({
-  path: path.resolve(__dirname, '.env'),
+  path: path.resolve(__dirname, '.env.dev'),
 })
 
 module.exports = {

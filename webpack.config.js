@@ -4,9 +4,14 @@ const optimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const htmlWebpackPlugin = require('html-webpack-plugin')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
+const dotenv = require('dotenv')
 
 const reactVendorsRegex = /[\\/]node_modules[\\/](react|react-dom)[\\/]/
 const restVendorsRegex = /[\\/]node_modules[\\/](!react)(!react-dom)[\\/]/
+
+const envVars = dotenv.config({
+  path: path.resolve(__dirname, '.env'),
+})
 
 module.exports = {
   mode: 'production',
@@ -87,7 +92,7 @@ module.exports = {
     }),
     new optimizeCssAssetsPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env': JSON.stringify(envVars.parsed),
     }),
   ],
 }
