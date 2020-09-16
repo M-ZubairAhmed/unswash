@@ -1,7 +1,13 @@
 import React from 'react'
 
+import Header from '_common/header'
+
 const ImageView = () => {
-  return <div>image view</div>
+  return (
+    <>
+      <Header />
+    </>
+  )
 }
 
 export default ImageView

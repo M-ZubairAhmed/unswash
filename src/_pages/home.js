@@ -5,6 +5,8 @@ import invert from 'invert-color'
 import { useInView } from 'react-intersection-observer'
 import { Link, useHistory, useLocation } from 'react-router-dom'
 
+import Header from '_common/header'
+
 const MASONRY_BREAKPOINTS = {
   default: 3,
   1024: 3,
@@ -23,15 +25,6 @@ function scrollToTop() {
     })
   }
 }
-
-const LogoBar = () => (
-  <header className="w-full text-center flex justify-center flex-col py-6">
-    <h1 className="text-6xl text-gray-600 font-extrabold">Unswash</h1>
-    <p className="text-purple-800 font-semibold">
-      Discover breathtaking images
-    </p>
-  </header>
-)
 
 const SearchBar = ({
   onSearchSubmit,
@@ -780,7 +773,7 @@ const HomePage = () => {
 
   return (
     <>
-      <LogoBar />
+      <Header onHomePage />
       <SearchBar
         searchKeyword={searchKeyword}
         onSearchInputChange={onSearchInputChange}
