@@ -14,6 +14,8 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 }
 
+const BASE_API_URL = 'https://api.unsplash.com'
+
 function scrollToTop() {
   if (document && typeof document !== 'undefined') {
     const topScrollElement = document.getElementById('SCROLL-TO-TOP-ELEMENT')
@@ -529,7 +531,7 @@ const HomePage = () => {
       setLoaderTo(true)
     }
 
-    const randomImagesURL = new URL('/photos', process.env.API_BASE_URL)
+    const randomImagesURL = new URL('/photos', BASE_API_URL)
     randomImagesURL.searchParams.append('page', page)
     randomImagesURL.searchParams.append('per_page', '21')
     randomImagesURL.searchParams.append('content_filter', 'high')
@@ -590,10 +592,7 @@ const HomePage = () => {
       setLoaderTo(true)
     }
 
-    const filteredImagesURL = new URL(
-      '/search/photos',
-      process.env.API_BASE_URL,
-    )
+    const filteredImagesURL = new URL('/search/photos', BASE_API_URL)
     filteredImagesURL.searchParams.append('page', page)
     filteredImagesURL.searchParams.append('per_page', '21')
     filteredImagesURL.searchParams.append('content_filter', 'high')
