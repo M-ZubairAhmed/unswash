@@ -25,12 +25,12 @@ function scrollToTop() {
 }
 
 const LogoBar = () => (
-  <div className="w-full text-center flex justify-center flex-col py-6">
+  <header className="w-full text-center flex justify-center flex-col py-6">
     <h1 className="text-6xl text-gray-600 font-extrabold">Unswash</h1>
     <p className="text-purple-800 font-semibold">
       Discover breathtaking images
     </p>
-  </div>
+  </header>
 )
 
 const SearchBar = ({
@@ -39,7 +39,7 @@ const SearchBar = ({
   onSearchInputChange,
   onSearchReset,
 }) => (
-  <div className="w-full sticky top-0 right-0 left-0 shadow-md px-3 py-6 bg-white z-50 bg-opacity-90">
+  <nav className="w-full sticky top-0 right-0 left-0 shadow-md px-3 py-6 bg-white z-50 bg-opacity-90">
     <form
       className="container mx-auto bg-white flex items-center justify-center relative"
       onSubmit={onSearchSubmit}
@@ -77,7 +77,7 @@ const SearchBar = ({
         <span className="hidden sm:block ml-3">Search</span>
       </button>
     </form>
-  </div>
+  </nav>
 )
 
 const SearchIcon = () => (
@@ -413,22 +413,38 @@ const Footer = ({
 
   // while no results can be displayed
   if (totalPages === 0 && currentPage === 1 && searchTextParam.length !== 0) {
-    return <footer>No results for your query</footer>
+    return (
+      <footer
+        className="container mx-auto text-center text-gray-500 tracking-wide 
+    font-semibold subpixel-antialiased text-2xl mt-16">
+        No results for your query
+      </footer>
+    )
   }
 
   // while no more results are available
   if (totalPages !== 0 && currentPage === totalPages) {
-    return <footer>Thats all folks</footer>
+    return (
+      <footer
+        className="container mx-auto text-center text-gray-500 tracking-wide 
+    font-semibold subpixel-antialiased text-2xl mb-10">
+        No more results
+      </footer>
+    )
   }
 
   // while infinite scroll is taking place
-  return (
-    <footer
-      className="text-center py-6 text-gray-600 font-bold"
-      ref={endOfPageRef}>
-      Loading
-    </footer>
-  )
+  if (totalPages === null || currentPage <= totalPages) {
+    return (
+      <footer
+        className="text-center py-6 text-gray-600 font-bold"
+        ref={endOfPageRef}>
+        Loading
+      </footer>
+    )
+  }
+
+  return null
 }
 
 function parseImageDataFromAPI(image) {
