@@ -547,7 +547,7 @@ const HomePage = () => {
           return { totalPages: null, collection: allImages }
         })
         setImages(images => {
-          const totalPages = null   
+          const totalPages = null
           // we are at start of random images or cleared the search
           if (pageNumber.current === 1) {
             return { totalPages, collection: imagesFromAPI }
