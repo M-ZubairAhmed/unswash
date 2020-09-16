@@ -562,7 +562,16 @@ const HomePage = () => {
       setImageSkeletonDisplayTo(false)
     } catch (err) {
       console.error(err)
-      setImageSkeletonDisplayTo(false)
+      if (err && err.message) {
+        if (err.message === 'Network cancel') {
+          // Lands here when cancel token is cleared
+          // Dont set any state here as user has moved to other page
+        } else {
+          setImageSkeletonDisplayTo(false)
+        }
+      } else {
+        setImageSkeletonDisplayTo(false)
+      }
     }
   }
 
@@ -622,7 +631,16 @@ const HomePage = () => {
       setImageSkeletonDisplayTo(false)
     } catch (err) {
       console.error(err)
-      setImageSkeletonDisplayTo(false)
+      if (err && err.message) {
+        if (err.message === 'Network cancel') {
+          // Lands here when cancel token is cleared
+          // Dont set any state here as user has moved to other page
+        } else {
+          setImageSkeletonDisplayTo(false)
+        }
+      } else {
+        setImageSkeletonDisplayTo(false)
+      }
     }
   }
 
@@ -693,6 +711,7 @@ const HomePage = () => {
     }
   }, [searchTextParam])
 
+  // network cancellation effect when page transitions
   useEffect(() => {
     return () => {
       networkCancellation.cancel('Network cancel')
@@ -724,6 +743,7 @@ const HomePage = () => {
     const locationWithSearchQuery = `${
       location.pathname
     }?${searchParams.toString()}`
+    
     history.push(locationWithSearchQuery)
   }
 
@@ -734,6 +754,7 @@ const HomePage = () => {
     if (searchTextParam.length === 0) {
       setSearchKeyword('')
     } else {
+      setSearchKeyword('')
       history.push(location.pathname)
     }
   }
