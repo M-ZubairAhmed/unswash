@@ -86,5 +86,8 @@ module.exports = {
       chunkFilename: 'style.[id].[contenthash].css',
     }),
     new optimizeCssAssetsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    }),
   ],
 }
