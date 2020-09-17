@@ -444,6 +444,7 @@ const Footer = ({
 
 function parseImageDataFromAPI(image) {
   const NO_ALT_TEXT = '--No alt text provided--'
+  
   const imageID = image?.id ?? ''
   const imageAltText = image?.alt_description ?? NO_ALT_TEXT
   const imageWidth = image?.width ?? 0
