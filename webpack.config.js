@@ -65,7 +65,7 @@ module.exports = {
               },
             },
           },
-          'sass-loader'
+          'sass-loader',
         ],
       },
       {
@@ -90,8 +90,10 @@ module.exports = {
     new htmlWebpackPlugin({
       filename: 'index.html',
       template: path.resolve(__dirname, 'src', 'index.html'),
+      favicon: path.resolve(__dirname, 'src', 'favicon.ico'),
       minify: true,
       hash: true,
+      scriptLoading: 'defer',
     }),
     new MiniCssExtractPlugin({
       filename: 'styles.[contenthash].css',

@@ -1,24 +1,24 @@
 {
   "name": "unswash",
-  "version": "0.0.1",
-  "description": "Open source clone of unsplash",
-  "main": "index.js",
+  "version": "0.0.5",
+  "description": "An open source clone of unsplash.com",
+  "main": "src/index.js",
   "scripts": {
     "start": "./node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
-    "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,css,html}'",
-    "clean": "rm -rf node_modules && rm -rf package-lock.json",
+    "lint": "./node_modules/.bin/prettier --write '**/*.{js,json,scss,html}'",
+    "clean": "rm -rf node_modules package-lock.json",
     "build": "./node_modules/.bin/webpack --bail --color --progress"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/m-zubairahmed/unswash.git"
+    "url": "https://github.com/M-ZubairAhmed/unswash.git"
   },
   "author": "M-ZubairAhmed",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/m-zubairahmed/unswash/issues"
+    "url": "https://github.com/M-ZubairAhmed/unswash/issues"
   },
-  "homepage": "https://github.com/m-zubairahmed/unswash#readme",
+  "homepage": "https://github.com/M-ZubairAhmed/unswash#readme",
   "dependencies": {
     "axios": "^0.20.0",
     "invert-color": "^2.0.0",

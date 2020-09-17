@@ -33,7 +33,7 @@ module.exports = {
               },
             },
           },
-          'sass-loader'
+          'sass-loader',
         ],
       },
       {
@@ -44,7 +44,8 @@ module.exports = {
   },
   plugins: [
     new htmlWebpackPlugin({
-      template: './src/index.html',
+      template: path.resolve(__dirname, 'src', 'index.html'),
+      favicon: path.resolve(__dirname, 'src', 'favicon.ico'),
     }),
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(envVars.parsed),
