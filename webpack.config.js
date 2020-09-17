@@ -1,13 +1,15 @@
 const webpack = require('webpack')
 const path = require('path')
-const optimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const htmlWebpackPlugin = require('html-webpack-plugin')
-const miniCssExtractPlugin = require('mini-css-extract-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const TerserJSPlugin = require('terser-webpack-plugin')
 const dotenv = require('dotenv')
 
-const reactVendorsRegex = /[\\/]node_modules[\\/](react|react-dom)[\\/]/
-const restVendorsRegex = /[\\/]node_modules[\\/](!react)(!react-dom)[\\/]/
+const reactlibsVendorsRegex = /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/
+const restVendorsRegex = /[\\/]node_modules[\\/](!react)(!react-dom)(!react-router-dom)[\\/]/
+const svgsRegex = /[\\/]src[\\/]_icons[\\/]/
 
 const envVars = dotenv.config({
   path: path.resolve(__dirname, '.env'),
@@ -25,18 +27,23 @@ module.exports = {
   },
   devtool: 'source-map',
   optimization: {
-    minimizer: [new optimizeCssAssetsPlugin({})],
+    minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
+    usedExports: true,
     splitChunks: {
       chunks: 'all',
       minSize: 0,
       cacheGroups: {
-        reactVendor: {
-          test: reactVendorsRegex,
-          name: 'reactvendor',
+        reactLibraryVendor: {
+          test: reactlibsVendorsRegex,
+          name: 'reactlibs',
         },
         vendor: {
           test: restVendorsRegex,
-          name: 'vendor',
+          name: 'vendors',
+        },
+        svg: {
+          test: svgsRegex,
+          name: 'svgs',
         },
       },
     },
@@ -46,9 +53,9 @@ module.exports = {
     rules: [
       { test: /\.js$/, exclude: /node_modules/, use: 'babel-loader' },
       {
-        test: /\.scss$/,
+        test: /\.css$/,
         use: [
-          'style-loader',
+          MiniCssExtractPlugin.loader,
           'css-loader',
           {
             loader: 'postcss-loader',
@@ -58,7 +65,6 @@ module.exports = {
               },
             },
           },
-          'sass-loader',
         ],
       },
       {
@@ -86,11 +92,10 @@ module.exports = {
       minify: true,
       hash: true,
     }),
-    new miniCssExtractPlugin({
+    new MiniCssExtractPlugin({
       filename: 'styles.[contenthash].css',
       chunkFilename: 'style.[id].[contenthash].css',
     }),
-    new optimizeCssAssetsPlugin(),
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(envVars.parsed),
     }),
