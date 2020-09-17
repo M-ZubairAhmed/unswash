@@ -6,6 +6,9 @@ import { useInView } from 'react-intersection-observer'
 import { Link, useHistory, useLocation } from 'react-router-dom'
 
 import Header from '_common/header'
+import SearchIcon from '_icons/search.svg'
+import ExternalLinkIcon from '_icons/ext-link.svg'
+import ZoomIcon from '_icons/zoom.svg'
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -75,24 +78,6 @@ const SearchBar = ({
   </nav>
 )
 
-const SearchIcon = () => (
-  <svg
-    width="1em"
-    height="1em"
-    viewBox="0 0 16 16"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg">
-    <path
-      fillRule="evenodd"
-      d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z"
-    />
-    <path
-      fillRule="evenodd"
-      d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"
-    />
-  </svg>
-)
-
 function calculateImageHeight(
   viewportWidth,
   masonryWidth,
@@ -139,45 +124,6 @@ const ImageSkeleton = ({ index }) => {
     </div>
   )
 }
-
-const ExternalLinkIcon = () => (
-  <svg
-    width="1.3em"
-    height="1.3em"
-    viewBox="0 0 16 16"
-    className="inline"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg">
-    <path
-      fillRule="evenodd"
-      d="M6.364 13.5a.5.5 0 0 0 .5.5H13.5a1.5 1.5 0 0 0 1.5-1.5v-10A1.5 1.5 0 0 0 13.5 1h-10A1.5 1.5 0 0 0 2 2.5v6.636a.5.5 0 1 0 1 0V2.5a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v10a.5.5 0 0 1-.5.5H6.864a.5.5 0 0 0-.5.5z"
-    />
-    <path
-      fillRule="evenodd"
-      d="M11 5.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793l-8.147 8.146a.5.5 0 0 0 .708.708L10 6.707V10.5a.5.5 0 0 0 1 0v-5z"
-    />
-  </svg>
-)
-
-const ZoomIcon = () => (
-  <svg
-    width="1.3em"
-    height="1.3em"
-    viewBox="0 0 16 16"
-    className="inline"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg">
-    <path
-      fillRule="evenodd"
-      d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"
-    />
-    <path d="M10.344 11.742c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1 6.538 6.538 0 0 1-1.398 1.4z" />
-    <path
-      fillRule="evenodd"
-      d="M6.5 3a.5.5 0 0 1 .5.5V6h2.5a.5.5 0 0 1 0 1H7v2.5a.5.5 0 0 1-1 0V7H3.5a.5.5 0 0 1 0-1H6V3.5a.5.5 0 0 1 .5-.5z"
-    />
-  </svg>
-)
 
 const ImageOverlay = ({
   isImageInView,
@@ -265,7 +211,7 @@ const ImageOverlay = ({
       transition-opacity duration-500 ease-in-out opacity-0 hover:text-red pointer-events-none
       flex flex-col justify-between p-6"
       title={alt}>
-      <div className="text-right">
+      <div className="flex justify-end">
         {fullImageButton}
         {externalImageButton}
       </div>
