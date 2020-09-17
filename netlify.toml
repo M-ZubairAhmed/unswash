@@ -28,3 +28,4 @@
     publickey-credentials-get=(),
     usb=(),
     web-share=(self)'''
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.cloudfront.net; object-src 'none'; style-src 'self' https://*.cloudfront.net; img-src 'self' https://*.cloudfront.net https://*.unsplash.com; media-src 'none'; frame-src 'none'; font-src 'none'; connect-src 'self' https://*.cloudfront.net https://*.unsplash.com"
