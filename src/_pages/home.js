@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
+import { Link, useHistory, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import Masonry from 'react-masonry-css'
-import invert from 'invert-color'
 import { useInView } from 'react-intersection-observer'
-import { Link, useHistory, useLocation } from 'react-router-dom'
+import invert from 'invert-color'
+import _throttle from 'lodash.throttle'
 
 import Header from '_common/header'
 
@@ -641,21 +642,24 @@ const HomePage = () => {
       ) {
         return
       }
-      // console.log('resize', viewportWidth, masonryWidth)
 
       setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
     }
 
     if (typeof window !== undefined) {
       // Add resize event listerer for recalculating image height based on width change
-      window.addEventListener('resize', handleBrowserResize)
+      window.addEventListener('resize', _throttle(handleBrowserResize, 800), {
+        passive: true,
+      })
       handleBrowserResize()
     }
 
     // clean up functions
     return () => {
       if (typeof window !== undefined) {
-        window.removeEventListener('resize', handleBrowserResize)
+        window.removeEventListener('resize', handleBrowserResize, {
+          passive: true,
+        })
       }
     }
   }, [])
