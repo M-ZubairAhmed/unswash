@@ -279,8 +279,7 @@ const ImageOverlay = ({
 
 const Image = ({
   id,
-  srcLow,
-  srcMed,
+  src,
   backgroundColor,
   alt,
   originalWidth,
@@ -334,14 +333,23 @@ const Image = ({
     <figure id="image-container" ref={imageRef} className="relative">
       <Link to={`/images/${id}`}>
         {isImageInView ? (
-          <img
-            {...imageProps}
-            src={srcLow}
-            srcSet={`${srcLow} 200w, ${srcMed} 400w`}
-            sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) 384px, calc(426px - 1.5rem)"
-          />
+          <picture>
+            <source
+              srcSet={`${src.webpLow} 200w, ${src.webpMed} 390w, ${src.webpHigh} 430w`}
+              sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) calc(384px - 0.5rem), calc(426px - 1.5rem)"
+              type="image/webp"
+            />
+            <img
+              {...imageProps}
+              src={src.jpgLow}
+              srcSet={`${src.jpgLow} 200w, ${src.jpgMed} 390w, ${src.jpgHigh} 430w`}
+              sizes="(max-width: 640px) calc(100vw - 0.5rem), (max-width: 768px) calc(384px - 0.5rem), calc(426px - 1.5rem)"
+            />
+          </picture>
         ) : (
-          <img {...imageProps} />
+          <picture>
+            <img {...imageProps} />
+          </picture>
         )}
       </Link>
       <ImageOverlay
@@ -444,16 +452,13 @@ const Footer = ({
 
 function parseImageDataFromAPI(image) {
   const NO_ALT_TEXT = '--No alt text provided--'
-  
+
   const imageID = image?.id ?? ''
   const imageAltText = image?.alt_description ?? NO_ALT_TEXT
   const imageWidth = image?.width ?? 0
   const imageHeight = image?.height ?? 0
   const imageColor = image?.color ?? '#fff'
-  const imageLowRes = image?.urls?.thumb ?? ''
-  const imageMedRes = image?.urls?.small ?? ''
-  const imageHighRes = image?.urls?.regular ?? ''
-  const imageUltraRes = image?.urls?.full ?? ''
+  const imageURL = image?.urls?.raw ?? ''
   const imageLink = image?.links?.html ?? ''
   const imageCreator = image?.user?.name ?? ''
   const imageCreatorLink = image?.user?.links?.html ?? ''
@@ -462,7 +467,7 @@ function parseImageDataFromAPI(image) {
   // Filter all those images which doesnt following the conditions
   if (
     imageID.length === 0 ||
-    imageLowRes.length === 0 ||
+    imageURL.length === 0 ||
     imageAltText === NO_ALT_TEXT ||
     String(imageHeight) === '0' ||
     String(imageWidth) === '0'
@@ -473,10 +478,14 @@ function parseImageDataFromAPI(image) {
       originalHeight: null,
       originalWidth: null,
       backgroundColor: null,
-      srcLow: null,
-      srcMed: null,
-      srcHigh: null,
-      srcUltra: null,
+      src: {
+        webpLow: null,
+        webpMed: null,
+        webpHigh: null,
+        jpgLow: null,
+        jpgMed: null,
+        jpgHigh: null,
+      },
       externalLink: null,
       userName: null,
       userLink: null,
@@ -484,16 +493,29 @@ function parseImageDataFromAPI(image) {
     }
   }
 
+  const defaultImageOptions =
+    'crop=entropy&fit=max&cs=tinysrgb&auto=compress&q=45'
+  const webpLow = `${imageURL}&${defaultImageOptions}&w=200&fm=webp&w=200`
+  const webpMed = `${imageURL}&${defaultImageOptions}&w=390&fm=webp&w=390`
+  const webpHigh = `${imageURL}&${defaultImageOptions}&w=430&fm=webp&w=430`
+  const jpgLow = `${imageURL}&${defaultImageOptions}&w=200&jpg`
+  const jpgMed = `${imageURL}&${defaultImageOptions}&w=390&jpg`
+  const jpgHigh = `${imageURL}&${defaultImageOptions}&w=430&jpg`
+
   return {
     id: imageID,
     alt: imageAltText,
     originalHeight: imageHeight,
     originalWidth: imageWidth,
     backgroundColor: imageColor,
-    srcLow: imageLowRes,
-    srcMed: imageMedRes,
-    srcHigh: imageHighRes,
-    srcUltra: imageUltraRes,
+    src: {
+      webpLow,
+      webpMed,
+      webpHigh,
+      jpgLow,
+      jpgMed,
+      jpgHigh,
+    },
     externalLink: imageLink,
     userName: imageCreator,
     userLink: imageCreatorLink,
