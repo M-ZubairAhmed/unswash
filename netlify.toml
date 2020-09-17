@@ -28,8 +28,4 @@
     publickey-credentials-get=(),
     usb=(),
     web-share=(self)'''
-    Content-Security-Policy = "default-src 'none'; report-uri https://cda8d996cc517994c6eef5d48cb5a119.report-uri.com/r/d/csp/reportOnly"
-
-
-
-
+    Content-Security-Policy = "default-src 'self'; script-src data: https://*.cloudfront.net; script-src-elem; script-src-attr; style-src 'self' data: https://*.cloudfront.net; style-src-elem; style-src-attr; img-src 'self' https://*.cloudfront.net; font-src; connect-src 'self' https://*.cloudfront.net; media-src 'self' https://*.cloudfront.net;  prefetch-src 'self' https://*.cloudfront.net https://*.cloudfront.net; worker-src 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;"
