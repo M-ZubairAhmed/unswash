@@ -4,6 +4,7 @@ const htmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
 const TerserJSPlugin = require('terser-webpack-plugin')
 const CompressionPlugin = require('compression-webpack-plugin');
 const dotenv = require('dotenv')
@@ -95,6 +96,17 @@ module.exports = {
       minify: true,
       hash: true,
       scriptLoading: 'defer',
+    }),
+    new CspHtmlWebpackPlugin({
+      'object-src': "'none'",
+      'script-src': ["'self'"],
+      'style-src': ["'self'"]
+    }, {
+      enabled: true,
+      nonceEnabled: {
+        'script-src': true,
+        'style-src': true
+      },
     }),
     new MiniCssExtractPlugin({
       filename: 'styles.[contenthash].css',
