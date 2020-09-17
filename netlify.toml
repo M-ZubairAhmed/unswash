@@ -28,6 +28,7 @@
     publickey-credentials-get=(),
     usb=(),
     web-share=(self)'''
+    Content-Security-Policy = "default-src 'none'; report-uri https://cda8d996cc517994c6eef5d48cb5a119.report-uri.com/r/d/csp/reportOnly"
 
 
 
