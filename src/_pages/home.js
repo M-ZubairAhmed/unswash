@@ -6,6 +6,7 @@ import { useInView } from 'react-intersection-observer'
 import { Link, useHistory, useLocation } from 'react-router-dom'
 
 import Header from '_common/header'
+
 import SearchIcon from '_icons/search.svg'
 import ExternalLinkIcon from '_icons/ext-link.svg'
 import ZoomIcon from '_icons/zoom.svg'

@@ -2,7 +2,7 @@ import React, { StrictMode, Suspense, lazy } from 'react'
 import { render } from 'react-dom'
 import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 
-import './styles.css'
+import './styles.scss'
 
 import DounutIcon from './_icons/dounut.svg'
 
