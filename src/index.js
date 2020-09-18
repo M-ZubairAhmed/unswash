@@ -4,7 +4,7 @@ import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 
 import './styles.scss'
 
-import DounutIcon from './_icons/dounut.svg'
+import { FullscreenLoader } from '_common/loaders'
 
 const HomePage = lazy(() =>
   import(/* webpackChunkName: "home" */ '_pages/home'),
@@ -16,19 +16,10 @@ const PageNotFound = lazy(() =>
   import(/* webpackChunkName: "page-not-found" */ '_pages/404'),
 )
 
-const Loader = () => (
-  <div className="flex justify-center h-screen items-center flex-col">
-    <span className="h-10 w-10 text-gray-500 animate-spin">
-      <DounutIcon />
-    </span>
-    <h4 className="text-xl text-gray-600 mt-4 font-bold">Unswash</h4>
-  </div>
-)
-
 const App = () => (
   <StrictMode>
     <BrowserRouter>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<FullscreenLoader />}>
         <Switch>
           <Route exact path="/" component={HomePage} />
           <Route path="/images/:imageID" component={ImageViewPage} />

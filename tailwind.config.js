@@ -10,6 +10,9 @@ module.exports = {
       backgroundOpacity: {
         90: '0.90',
       },
+      minHeight: {
+        'screen-25': '25vh',
+      },
     },
   },
   variants: {},
