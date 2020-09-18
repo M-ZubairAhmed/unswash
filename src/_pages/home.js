@@ -4,9 +4,9 @@ import axios from 'axios'
 import Masonry from 'react-masonry-css'
 import { useInView } from 'react-intersection-observer'
 import invert from 'invert-color'
-import _throttle from 'lodash.throttle'
 
 import Header from '_common/header'
+import { scrollToTop } from '_common/utilities'
 
 import SearchIcon from '_icons/search.svg'
 import ExternalLinkIcon from '_icons/ext-link.svg'
@@ -20,18 +20,6 @@ const MASONRY_BREAKPOINTS = {
 }
 
 const BASE_API_URL = 'https://api.unsplash.com'
-
-function scrollToTop() {
-  if (document && typeof document !== 'undefined') {
-    const topScrollElement = document.getElementById('SCROLL-TO-TOP-ELEMENT')
-
-    topScrollElement.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-      inline: 'nearest',
-    })
-  }
-}
 
 const SearchBar = ({
   onSearchSubmit,
@@ -79,40 +67,6 @@ const SearchBar = ({
     </form>
   </nav>
 )
-
-function calculateImageHeight(
-  viewportWidth,
-  masonryWidth,
-  originalWidth,
-  originalHeight,
-) {
-  if (
-    viewportWidth === 0 ||
-    originalHeight === 0 ||
-    originalWidth === 0 ||
-    masonryWidth === 0
-  ) {
-    return 0
-  }
-
-  let viewportBreakPoint = 0
-  if (viewportWidth >= 768) {
-    viewportBreakPoint = 1024
-  } else if (viewportWidth >= 640 && viewportWidth < 768) {
-    viewportBreakPoint = 768
-  } else if (viewportWidth < 640) {
-    viewportBreakPoint = 640
-  }
-
-  if (viewportBreakPoint === 0) {
-    return 0
-  }
-
-  const numberOfColumns = MASONRY_BREAKPOINTS[viewportBreakPoint]
-  const columnWidth = masonryWidth / numberOfColumns
-
-  return (columnWidth / originalWidth) * originalHeight
-}
 
 const ImageSkeleton = ({ index }) => {
   const randomHeight =
@@ -236,7 +190,6 @@ const Image = ({
   userImage,
   userName,
   userLink,
-  widthOfContainer,
 }) => {
   const [imageRef, isImageInView] = useInView({
     triggerOnce: true,
@@ -245,40 +198,26 @@ const Image = ({
     delay: 100,
   })
 
-  const height = useMemo(
-    () =>
-      calculateImageHeight(
-        widthOfContainer.viewport,
-        widthOfContainer.masonry,
-        originalWidth,
-        originalHeight,
-      ),
-    [
-      widthOfContainer.viewport,
-      widthOfContainer.masonry,
-      originalWidth,
-      originalHeight,
-    ],
-  )
-
   const imageProps = {
     alt,
     loading: 'lazy',
-    className:
-      'text-center text-lg subpixel-antialiased italic font-semibold cursor-pointer object-cover object-center',
+    className: `cursor-pointer text-center text-lg italic font-semibold object-cover object-center
+      w-full h-auto absolute z-10`,
     title: alt,
     style: {
-      width: '100%',
-      height: height,
       backgroundColor: backgroundColor,
       color: invert(backgroundColor), // To highligh alt text color based on background color
-      marginTop: '0.5rem',
-      marginBottom: '0.5rem',
     },
   }
 
+  const height = (originalHeight / originalWidth) * 100
+
   return (
-    <figure id="image-container" ref={imageRef} className="relative">
+    <figure
+      id="image-container"
+      className="relative my-2"
+      style={{ paddingBottom: `${height}%` }}
+      ref={imageRef}>
       <Link to={`/images/${id}`}>
         {isImageInView ? (
           <picture>
@@ -312,15 +251,10 @@ const Image = ({
   )
 }
 
-const ImagesGrid = ({
-  images,
-  widthOfContainer,
-  isShowingLoader,
-  masonryRef,
-}) => {
+const ImagesGrid = ({ images, isShowingLoader }) => {
   if (isShowingLoader) {
     return (
-      <main className="container mx-auto my-6" ref={masonryRef}>
+      <main className="container mx-auto my-6">
         <Masonry
           breakpointCols={MASONRY_BREAKPOINTS}
           className="flex w-auto"
@@ -333,17 +267,13 @@ const ImagesGrid = ({
     )
   }
   return (
-    <main className="container mx-auto my-6" ref={masonryRef}>
+    <main className="container mx-auto my-6">
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
         className="flex w-auto"
         columnClassName="bg-clip-border mx-1">
         {images.collection.map(imageData => (
-          <Image
-            key={imageData.id}
-            widthOfContainer={widthOfContainer}
-            {...imageData}
-          />
+          <Image key={imageData.id} {...imageData} />
         ))}
       </Masonry>
     </main>
@@ -443,9 +373,9 @@ function parseImageDataFromAPI(image) {
 
   const defaultImageOptions =
     'crop=entropy&fit=max&cs=tinysrgb&auto=compress&q=45'
-  const webpLow = `${imageURL}&${defaultImageOptions}&w=200&fm=webp&w=200`
-  const webpMed = `${imageURL}&${defaultImageOptions}&w=390&fm=webp&w=390`
-  const webpHigh = `${imageURL}&${defaultImageOptions}&w=430&fm=webp&w=430`
+  const webpLow = `${imageURL}&${defaultImageOptions}&w=200&fm=webp`
+  const webpMed = `${imageURL}&${defaultImageOptions}&w=390&fm=webp`
+  const webpHigh = `${imageURL}&${defaultImageOptions}&w=430&fm=webp`
   const jpgLow = `${imageURL}&${defaultImageOptions}&w=200&jpg`
   const jpgMed = `${imageURL}&${defaultImageOptions}&w=390&jpg`
   const jpgHigh = `${imageURL}&${defaultImageOptions}&w=430&jpg`
@@ -473,12 +403,6 @@ function parseImageDataFromAPI(image) {
 
 const HomePage = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
-
-  const masonryRef = useRef(null)
-  const [widthOfContainer, setWidthOfContainer] = useState({
-    viewport: 0,
-    masonry: 0,
-  })
 
   const [endOfPageRef, reachedEndOfPage] = useInView({
     rootMargin: '200% 0%',
@@ -623,47 +547,6 @@ const HomePage = () => {
     }
   }
 
-  // effect for browser resize
-  useEffect(() => {
-    function handleBrowserResize() {
-      const viewportWidth =
-        window.innerWidth ||
-        document.documentElement.clientWidth ||
-        document.body.clientWidth ||
-        0
-
-      const masonryWidth =
-        masonryRef?.current?.children?.[0]?.getBoundingClientRect()?.width ?? 0
-
-      // skip resetting if values didnt change
-      if (
-        widthOfContainer.viewport === viewportWidth &&
-        widthOfContainer.masonry === masonryWidth
-      ) {
-        return
-      }
-
-      setWidthOfContainer({ viewport: viewportWidth, masonry: masonryWidth })
-    }
-
-    if (typeof window !== undefined) {
-      // Add resize event listerer for recalculating image height based on width change
-      window.addEventListener('resize', _throttle(handleBrowserResize, 800), {
-        passive: true,
-      })
-      handleBrowserResize()
-    }
-
-    // clean up functions
-    return () => {
-      if (typeof window !== undefined) {
-        window.removeEventListener('resize', handleBrowserResize, {
-          passive: true,
-        })
-      }
-    }
-  }, [])
-
   // effect running after user reaches bottom threshold
   useEffect(() => {
     if (reachedEndOfPage) {
@@ -753,12 +636,7 @@ const HomePage = () => {
         onSearchSubmit={onSearchSubmit}
         onSearchReset={onSearchReset}
       />
-      <ImagesGrid
-        masonryRef={masonryRef}
-        images={images}
-        widthOfContainer={widthOfContainer}
-        isShowingLoader={isShowingLoader}
-      />
+      <ImagesGrid images={images} isShowingLoader={isShowingLoader} />
       <Footer
         totalPages={images.totalPages}
         endOfPageRef={endOfPageRef}

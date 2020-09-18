@@ -5,7 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const TerserJSPlugin = require('terser-webpack-plugin')
-const CompressionPlugin = require('compression-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin')
 const dotenv = require('dotenv')
 
 const reactlibsVendorsRegex = /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/
@@ -103,6 +103,6 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(envVars.parsed),
     }),
-    new CompressionPlugin()
+    new CompressionPlugin(),
   ],
 }
