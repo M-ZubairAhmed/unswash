@@ -5,6 +5,8 @@ import Header from '_common/header'
 import { Link, useParams } from 'react-router-dom'
 import invert from 'invert-color'
 
+import { scrollToTop } from '_common/utilities'
+
 import BackArrowIcon from '_icons/back-arrow.svg'
 import ExternalLinkIcon from '_icons/ext-link.svg'
 
@@ -71,11 +73,20 @@ const Image = ({
   src,
   alt,
   backgroundColor,
-  originalHeight,
-  originalWidth,
+  originalHeight = 1,
+  originalWidth = 1,
 }) => {
   const imageHeight = (originalHeight / originalWidth) * 100
-  
+
+  if (
+    src.webpLow.length === 0 ||
+    src.webpHigh.length === 0 ||
+    src.jpgHigh.length === 0 ||
+    src.jpgLow.length === 0
+  ) {
+    return null
+  }
+
   return (
     <figure
       style={{
@@ -107,7 +118,19 @@ const Image = ({
   )
 }
 
-const ImageBox = ({ isShowingLoader, ...image }) => {
+const ImageBox = ({ isShowingLoader, errorMessage, ...image }) => {
+  if (errorMessage.length !== 0) {
+    return (
+      <main className="container mx-auto my-6 bg-gray-200">
+        <div
+          className="max-w-screen-md mx-auto min-h-full flex justify-center 
+      text-center items-center min-h-screen-25">
+          <h1 className="text-3xl text-gray-700 ">{errorMessage}</h1>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="container mx-auto my-6 bg-gray-200">
       <div className="max-w-screen-md mx-auto min-h-full">
@@ -125,6 +148,7 @@ const ImageView = () => {
   const [image, setImage] = useState(INITIAL_IMAGE)
 
   const [isShowingLoader, setLoaderTo] = useState(true)
+  const [errorMessage, throwErrorMessage] = useState('')
 
   function parseImageDataFromAPI(image) {
     const NO_ALT_TEXT = '--No alt text provided--'
@@ -226,11 +250,14 @@ const ImageView = () => {
         const responseData = response?.data ?? {}
 
         if (Object.keys(responseData).length === 0) {
-          // no correct image fror the id available
+          throwErrorMessage("Image doesn't exist.")
         } else {
           const imageFromAPI = parseImageDataFromAPI(responseData)
-
-          // setImage(imageFromAPI)
+          if (imageFromAPI.id === null) {
+            throwErrorMessage("Image doesn't exist.")
+          } else {
+            setImage(imageFromAPI)
+          }
         }
 
         setLoaderTo(false)
@@ -242,13 +269,16 @@ const ImageView = () => {
             // Dont set any state here as user has moved to other page
           } else {
             setLoaderTo(false)
+            throwErrorMessage("Image doesn't exist.")
           }
         } else {
+          throwErrorMessage("Image doesn't exist.")
           setLoaderTo(false)
         }
       }
     }
 
+    scrollToTop()
     doFetchImage(imageID)
 
     // network cancellation effect when page transitions
@@ -261,7 +291,11 @@ const ImageView = () => {
     <>
       <Header />
       <BackButton externalLink={image.externalLink} />
-      <ImageBox isShowingLoader={isShowingLoader} {...image} />
+      <ImageBox
+        isShowingLoader={isShowingLoader}
+        errorMessage={errorMessage}
+        {...image}
+      />
     </>
   )
 }
