@@ -9,6 +9,8 @@ import { scrollToTop } from '_common/utilities'
 
 import BackArrowIcon from '_icons/back-arrow.svg'
 import ExternalLinkIcon from '_icons/ext-link.svg'
+import DownloadIcon from '_icons/download.svg'
+import ShareIcon from '_icons/share.svg'
 
 const BASE_API_URL = 'https://api.unsplash.com'
 
@@ -37,7 +39,7 @@ const INITIAL_IMAGE = {
 }
 
 const BackButton = ({ externalLink = '' }) => (
-  <nav className="container mx-auto my-12 flex justify-between">
+  <nav className="container mx-auto my-6 flex justify-between px-2">
     <Link
       to="/"
       className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
@@ -54,7 +56,7 @@ const BackButton = ({ externalLink = '' }) => (
         externalLink.length === 0 ? 'opacity-0' : 'opacity-100'
       }`}
       title="View image at Unsplash">
-      <ExternalLinkIcon className="inline-block text-xl" />
+      Open <ExternalLinkIcon className="inline-block text-md" />
     </a>
   </nav>
 )
@@ -101,7 +103,7 @@ const Image = ({
           type="image/webp"
         />
         <img
-          srcSet={`${src.jppLow} 800w, ${src.jpgHigh} 1080w`}
+          srcSet={`${src.jpgLow} 800w, ${src.jpgHigh} 1080w`}
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 640px, 768px"
           src={src.jpgLow}
           loading="lazy"
@@ -121,9 +123,9 @@ const Image = ({
 const ImageBox = ({ isShowingLoader, errorMessage, ...image }) => {
   if (errorMessage.length !== 0) {
     return (
-      <main className="container mx-auto my-6 bg-gray-200">
+      <main className="container mx-auto my-6 bg-gray-100">
         <div
-          className="max-w-screen-md mx-auto min-h-full flex justify-center 
+          className="max-w-screen-sm mx-auto min-h-full flex justify-center 
       text-center items-center min-h-screen-25">
           <h1 className="text-3xl text-gray-700 ">{errorMessage}</h1>
         </div>
@@ -132,11 +134,110 @@ const ImageBox = ({ isShowingLoader, errorMessage, ...image }) => {
   }
 
   return (
-    <main className="container mx-auto my-6 bg-gray-200">
-      <div className="max-w-screen-md mx-auto min-h-full">
+    <main className="container mx-auto my-6 bg-gray-100">
+      <div className="max-w-screen-sm mx-auto min-h-full">
         {isShowingLoader ? <ImageSkeleton /> : <Image {...image} />}
       </div>
     </main>
+  )
+}
+
+const ImageDetails = ({
+  isShowingLoader,
+  errorMessage,
+  userName,
+  userImage,
+  userLink,
+  description,
+  src,
+  id,
+  location,
+}) => {
+  if (errorMessage.length !== 0 || isShowingLoader) {
+    return null
+  }
+
+  let imageDescription = null
+  if (description.length !== 0) {
+    imageDescription = (
+      <div className="text-center mt-3 mb-10">
+        {imageDescription}
+
+        <figcaption className="text-gray-700 text-2xl font-bold">
+          {description}
+        </figcaption>
+      </div>
+    )
+  }
+
+  let displayPicture = null
+  if (userImage && userImage.length !== 0) {
+    displayPicture = (
+      <a href={userLink} rel="noopener noreferrer" target="_blank">
+        <img
+          src={userImage}
+          alt="user"
+          loading="lazy"
+          title=""
+          className="h-8 w-8 object-cover rounded-full bg-white object-cover object-center border border-gray-400"
+        />
+      </a>
+    )
+  }
+
+  let displayName = null
+  if (userName && userName.length !== 0) {
+    displayName = (
+      <a
+        href={userLink}
+        rel="noopener noreferrer"
+        target="_blank"
+        className="font-semibold tracking-wide text-gray-900 truncate ml-4 hover:text-gray-600"
+        title={userName}>
+        {userName}
+      </a>
+    )
+  }
+
+  let locationName = null
+  if (location.length !== 0) {
+    locationName = <p className="flex items-center ml-4 text-sm">{location}</p>
+  }
+
+  return (
+    <div className="container mx-auto mt-12 mb-18">
+      {imageDescription}
+      <div className=" flex flex-col md:flex-row xl:flex-row flex-wrap justify-between">
+        <div className="flex-grow px-2">
+          <div className="flex flex-row items-center mb-6">
+            {displayPicture}
+            <div>
+              {displayName}
+              {locationName}
+            </div>
+          </div>
+        </div>
+        <div className="flex-grow md:flex-grow-0 xl:flex-grow-0 flex flex-col px-2 mb-4">
+          <a
+            href={src.download}
+            download={`photo-${id}`}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="hover:bg-purple-700 border transition-colors duration-300
+            ease-in-out text-white py-2 px-4 rounded flex justify-center
+            bg-purple-800 border-purple-600 mb-4">
+            <DownloadIcon className="mr-4 text-lg" />
+            Download
+          </a>
+          <button
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded flex justify-center">
+            <ShareIcon className="mr-4 text-lg" />
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -207,6 +308,7 @@ const ImageView = () => {
     const webpLow = `${imageOriginalURL}&${defaultImageOptions}&w=800&fm=webp`
     const jpgHigh = `${imageOriginalURL}&${defaultImageOptions}&w=1080&fm=jpg`
     const jpgLow = `${imageOriginalURL}&${defaultImageOptions}&w=800&fm=jpg`
+    const jpgOriginal = `${imageOriginalURL}&fm=jpg`
 
     return {
       id: imageID,
@@ -220,7 +322,7 @@ const ImageView = () => {
         webpLow,
         jpgHigh,
         jpgLow,
-        download: imageOriginalURL,
+        download: jpgOriginal,
       },
       externalLink: imageLink,
       userName: imageCreator,
@@ -292,6 +394,11 @@ const ImageView = () => {
       <Header />
       <BackButton externalLink={image.externalLink} />
       <ImageBox
+        isShowingLoader={isShowingLoader}
+        errorMessage={errorMessage}
+        {...image}
+      />
+      <ImageDetails
         isShowingLoader={isShowingLoader}
         errorMessage={errorMessage}
         {...image}
