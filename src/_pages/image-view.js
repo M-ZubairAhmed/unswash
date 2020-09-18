@@ -145,6 +145,7 @@ const ImageBox = ({ isShowingLoader, errorMessage, ...image }) => {
 const ImageDetails = ({
   isShowingLoader,
   errorMessage,
+  onShareImage,
   userName,
   userImage,
   userLink,
@@ -231,7 +232,8 @@ const ImageDetails = ({
           </a>
           <button
             className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
-            border border-gray-400 rounded flex justify-center">
+            border border-gray-400 rounded flex justify-center"
+            onClick={onShareImage}>
             <ShareIcon className="mr-4 text-lg" />
             Share
           </button>
@@ -389,6 +391,22 @@ const ImageView = () => {
     }
   }, [])
 
+  function onShareImage(event) {
+    event.preventDefault()
+    // native sharing is supported
+    if (navigator.share) {
+      try {
+        navigator.share({
+          title: 'Unswash',
+          text: 'Check out this photo on Unswash',
+          url: `https://unswash.netlify.app/images/${imageID}`,
+        })
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
   return (
     <>
       <Header />
@@ -401,6 +419,7 @@ const ImageView = () => {
       <ImageDetails
         isShowingLoader={isShowingLoader}
         errorMessage={errorMessage}
+        onShareImage={onShareImage}
         {...image}
       />
     </>
