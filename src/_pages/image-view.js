@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-
-import Header from '_common/header'
 import { Link, useParams } from 'react-router-dom'
 import invert from 'invert-color'
+import { Dialog } from '@reach/dialog'
 
+import Header from '_common/header'
 import { scrollToTop } from '_common/utilities'
 
 import BackArrowIcon from '_icons/back-arrow.svg'
@@ -36,6 +36,24 @@ const INITIAL_IMAGE = {
   location: '',
   views: '',
   likes: '',
+}
+
+function getShareURLs(imageID) {
+  if (imageID && imageID.length === 0) {
+    return {
+      twitter: '',
+      linkedin: '',
+      whatsapp: '',
+    }
+  }
+
+  const share = {
+    twitter: `https://twitter.com/intent/tweet?url=https%3A%2F%2Funswash.netlify.app%2Fimages%2F${imageID}&via=Md_ZubairAhmed&text=Check%20out%20this%20photo%20on%20Unswash%20-%20an%20open%20source%20clone%20of%20Unsplash&hashtags=%23opensource%20%23unsplash%20%23image`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Funswash.netlify.app%2F${imageID}`,
+    whatsapp: `https://api.whatsapp.com/send?text=Check%20out%20this%20photo%20on%20Unswash%20-%20an%20open%20source%20clone%20of%20Unsplash.%20https%3A%2F%2Funswash.netlify.app%2F${imageID}`,
+  }
+
+  return share
 }
 
 const BackButton = ({ externalLink = '' }) => (
@@ -109,7 +127,7 @@ const Image = ({
           loading="lazy"
           alt={alt}
           className="text-center text-lg italic font-semibold object-cover object-center
-          w-full h-auto absolute z-10"
+          w-full h-auto absolute"
           style={{
             backgroundColor: backgroundColor,
             color: backgroundColor.length !== 0 && invert(backgroundColor),
@@ -206,7 +224,7 @@ const ImageDetails = ({
   }
 
   return (
-    <div className="container mx-auto mt-12 mb-18">
+    <div className="container mx-auto mt-12 mb-20">
       {imageDescription}
       <div className=" flex flex-col md:flex-row xl:flex-row flex-wrap justify-between">
         <div className="flex-grow px-2">
@@ -252,6 +270,9 @@ const ImageView = () => {
 
   const [isShowingLoader, setLoaderTo] = useState(true)
   const [errorMessage, throwErrorMessage] = useState('')
+
+  const [shouldShowShareDialog, toggleShareDialog] = useState(false)
+  const [copiedStatus, setCopiedStatus] = useState('')
 
   function parseImageDataFromAPI(image) {
     const NO_ALT_TEXT = '--No alt text provided--'
@@ -393,6 +414,7 @@ const ImageView = () => {
 
   function onShareImage(event) {
     event.preventDefault()
+
     // native sharing is supported
     if (navigator.share) {
       try {
@@ -402,8 +424,32 @@ const ImageView = () => {
           url: `https://unswash.netlify.app/images/${imageID}`,
         })
       } catch (err) {
-        console.error(err)
+        console.error(err, '> Share dialog error')
       }
+    } else {
+      openShareDialog()
+    }
+  }
+
+  function openShareDialog() {
+    toggleShareDialog(true)
+  }
+
+  function closeShareDialog() {
+    toggleShareDialog(false)
+    setCopiedStatus('')
+  }
+
+  async function copySelfURL() {
+    try {
+      await navigator.clipboard.writeText(
+        `https://unswash.netlify.app/images/${imageID}`,
+      )
+      setCopiedStatus('Copied')
+    } catch (err) {
+      // clipboard api not supported
+      console.error(err)
+      setCopiedStatus('Select and copy the link above')
     }
   }
 
@@ -422,6 +468,55 @@ const ImageView = () => {
         onShareImage={onShareImage}
         {...image}
       />
+      <Dialog
+        isOpen={shouldShowShareDialog}
+        onDismiss={closeShareDialog}
+        aria-label="Share the photo with other"
+        className="md:w-2/4 xl:w-1/4 max-w-full mx-auto bg-white p-6 outline-none mt-40 
+        border shadow-lg border-gray-400 flex flex-col">
+        <h1 className="text-2xl font-semibold text-gray-600 mb-4">
+          Share this photo
+        </h1>
+        <div className="flex flex-col justify-center items-center">
+          <a
+            href={getShareURLs(imageID).linkedin}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+            Linkedin
+          </a>
+          <a
+            href={getShareURLs(imageID).twitter}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+            Twitter
+          </a>
+          <a
+            href={getShareURLs(imageID).whatsapp}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+            Whatsapp
+          </a>
+          <div className="w-3/4 flex flex-row justify-center items-center">
+            <input
+              value={`https://unswash.netlify.app/images/${imageID}`}
+              className="px-2 py-2 flex-grow rounded rounded-tr-none rounded-br-none overflow-x-visible border bg-gray-200 border-gray-400 whitespace-no-wrap"
+            />
+            <button
+              onClick={copySelfURL}
+              className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 text-center rounded-tl-none rounded-bl-none">
+              Copy
+            </button>
+          </div>
+          <small className="h-4">{copiedStatus}</small>
+        </div>
+      </Dialog>
     </>
   )
 }

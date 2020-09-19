@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/M-ZubairAhmed/unswash#readme",
   "dependencies": {
+    "@reach/dialog": "^0.11.2",
     "axios": "^0.20.0",
     "invert-color": "^2.0.0",
     "react": "^16.13.1",
