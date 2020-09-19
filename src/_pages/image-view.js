@@ -261,6 +261,77 @@ const ImageDetails = ({
   )
 }
 
+const ShareModal = ({
+  closeShareDialog,
+  imageID,
+  copySelfURL,
+  copiedStatus,
+}) => {
+  const shareURLs = getShareURLs(imageID)
+
+  return (
+    <Dialog
+      onDismiss={closeShareDialog}
+      aria-label="Share the photo with other"
+      className="md:w-2/4 xl:w-1/4 max-w-full mx-auto bg-white p-6 outline-none mt-40 
+        border shadow-lg border-gray-400 flex flex-col">
+      <div className="flex justify-between mb-4">
+        <h1 className="text-2xl font-semibold text-gray-600 justify-center items-center">
+          Share this photo
+        </h1>
+        <button
+          onClick={closeShareDialog}
+          className="outline-none text-2xl font-hairline text-gray-600">
+          &#x58;
+        </button>
+      </div>
+
+      <div className="flex flex-col justify-center items-center">
+        <a
+          href={shareURLs.linkedin}
+          rel="noopener noreferrer"
+          target="_blank"
+          className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+          Linkedin
+        </a>
+        <a
+          href={shareURLs.twitter}
+          rel="noopener noreferrer"
+          target="_blank"
+          className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+          Twitter
+        </a>
+        <a
+          href={shareURLs.whatsapp}
+          rel="noopener noreferrer"
+          target="_blank"
+          className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 w-3/4 text-center">
+          Whatsapp
+        </a>
+        <div className="w-3/4 flex flex-row justify-center items-center">
+          <input
+            value={`https://unswash.netlify.app/images/${imageID}`}
+            className="px-2 py-2 flex-grow rounded rounded-tr-none rounded-br-none overflow-x-visible 
+              border bg-gray-200 border-gray-400 whitespace-no-wrap"
+            readOnly
+            autoFocus
+          />
+          <button
+            onClick={copySelfURL}
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
+            border border-gray-400 rounded my-2 text-center rounded-tl-none rounded-bl-none">
+            Copy
+          </button>
+        </div>
+        <small className="h-4">{copiedStatus}</small>
+      </div>
+    </Dialog>
+  )
+}
+
 const ImageView = () => {
   const networkCancellation = useMemo(() => axios.CancelToken.source(), [])
 
@@ -468,55 +539,15 @@ const ImageView = () => {
         onShareImage={onShareImage}
         {...image}
       />
-      <Dialog
-        isOpen={shouldShowShareDialog}
-        onDismiss={closeShareDialog}
-        aria-label="Share the photo with other"
-        className="md:w-2/4 xl:w-1/4 max-w-full mx-auto bg-white p-6 outline-none mt-40 
-        border shadow-lg border-gray-400 flex flex-col">
-        <h1 className="text-2xl font-semibold text-gray-600 mb-4">
-          Share this photo
-        </h1>
-        <div className="flex flex-col justify-center items-center">
-          <a
-            href={getShareURLs(imageID).linkedin}
-            rel="noopener noreferrer"
-            target="_blank"
-            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
-            border border-gray-400 rounded my-2 w-3/4 text-center">
-            Linkedin
-          </a>
-          <a
-            href={getShareURLs(imageID).twitter}
-            rel="noopener noreferrer"
-            target="_blank"
-            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
-            border border-gray-400 rounded my-2 w-3/4 text-center">
-            Twitter
-          </a>
-          <a
-            href={getShareURLs(imageID).whatsapp}
-            rel="noopener noreferrer"
-            target="_blank"
-            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
-            border border-gray-400 rounded my-2 w-3/4 text-center">
-            Whatsapp
-          </a>
-          <div className="w-3/4 flex flex-row justify-center items-center">
-            <input
-              value={`https://unswash.netlify.app/images/${imageID}`}
-              className="px-2 py-2 flex-grow rounded rounded-tr-none rounded-br-none overflow-x-visible border bg-gray-200 border-gray-400 whitespace-no-wrap"
-            />
-            <button
-              onClick={copySelfURL}
-              className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 
-            border border-gray-400 rounded my-2 text-center rounded-tl-none rounded-bl-none">
-              Copy
-            </button>
-          </div>
-          <small className="h-4">{copiedStatus}</small>
-        </div>
-      </Dialog>
+      {shouldShowShareDialog && (
+        <ShareModal
+          shouldShowShareDialog={shouldShowShareDialog}
+          closeShareDialog={closeShareDialog}
+          imageID={imageID}
+          copySelfURL={copySelfURL}
+          copiedStatus={copiedStatus}
+        />
+      )}
     </>
   )
 }
