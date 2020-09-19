@@ -49,8 +49,8 @@ function getShareURLs(imageID) {
 
   const share = {
     twitter: `https://twitter.com/intent/tweet?url=https%3A%2F%2Funswash.netlify.app%2Fimages%2F${imageID}&via=Md_ZubairAhmed&text=Check%20out%20this%20photo%20on%20Unswash%20-%20an%20open%20source%20clone%20of%20Unsplash&hashtags=%23opensource%20%23unsplash%20%23image`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Funswash.netlify.app%2F${imageID}`,
-    whatsapp: `https://api.whatsapp.com/send?text=Check%20out%20this%20photo%20on%20Unswash%20-%20an%20open%20source%20clone%20of%20Unsplash.%20https%3A%2F%2Funswash.netlify.app%2F${imageID}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Funswash.netlify.app%2Fimages%2F${imageID}`,
+    whatsapp: `https://api.whatsapp.com/send?text=Check%20out%20this%20photo%20on%20Unswash%20-%20an%20open%20source%20clone%20of%20Unsplash.%20https%3A%2F%2Funswash.netlify.app%2Fimages%2F${imageID}`,
   }
 
   return share
