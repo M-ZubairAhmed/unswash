@@ -49,6 +49,7 @@
     "css-loader": "^4.3.0",
     "dotenv": "^8.2.0",
     "fs": "0.0.1-security",
+    "html-critical-webpack-plugin": "^2.1.0",
     "html-webpack-plugin": "^4.4.1",
     "mini-css-extract-plugin": "^0.11.2",
     "node-sass": "^4.14.1",

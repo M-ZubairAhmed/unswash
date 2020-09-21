@@ -202,7 +202,7 @@ const Image = ({
     alt,
     loading: 'lazy',
     className: `cursor-pointer text-center text-lg italic font-semibold object-cover object-center
-      w-full h-auto absolute z-10`,
+      w-full min-h-full absolute z-10`,
     title: alt,
     style: {
       backgroundColor: backgroundColor,

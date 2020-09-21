@@ -6,6 +6,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const TerserJSPlugin = require('terser-webpack-plugin')
 const CompressionPlugin = require('compression-webpack-plugin')
+const HtmlCriticalWebpackPlugin = require('html-critical-webpack-plugin')
 const dotenv = require('dotenv')
 
 const reactlibsVendorsRegex = /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/
@@ -62,7 +63,7 @@ module.exports = {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
-                plugins: [require('tailwindcss'), require('autoprefixer')],
+                plugins: [require('tailwindcss')],
               },
             },
           },
@@ -88,6 +89,9 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new webpack.HashedModuleIdsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(envVars.parsed),
+    }),
     new htmlWebpackPlugin({
       filename: 'index.html',
       template: path.resolve(__dirname, 'src', 'index.html'),
@@ -100,8 +104,18 @@ module.exports = {
       filename: 'styles.[contenthash].css',
       chunkFilename: 'style.[id].[contenthash].css',
     }),
-    new webpack.DefinePlugin({
-      'process.env': JSON.stringify(envVars.parsed),
+    new HtmlCriticalWebpackPlugin({
+      base: path.resolve(__dirname, 'build'),
+      src: 'index.html',
+      dest: 'index.html',
+      inline: true,
+      minify: true,
+      extract: true,
+      width: 375,
+      height: 565,
+      penthouse: {
+        blockJSRequests: false,
+      },
     }),
     new CompressionPlugin(),
   ],

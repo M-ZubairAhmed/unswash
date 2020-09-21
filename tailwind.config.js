@@ -1,5 +1,9 @@
 module.exports = {
-  purge: ['./src/**/*.js'],
+  purge: {
+    mode: 'all',
+    preserveHtmlElements: false,
+    content: ['./src/**/*.js'],
+  },
   theme: {
     screens: {
       sm: '640px',
