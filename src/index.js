@@ -4,8 +4,6 @@ import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 
 import './styles.scss'
 
-import { FullscreenLoader } from '_common/loaders'
-
 const HomePage = lazy(() =>
   import(/* webpackChunkName: "home" */ '_pages/home'),
 )
@@ -14,6 +12,19 @@ const ImageViewPage = lazy(() =>
 )
 const PageNotFound = lazy(() =>
   import(/* webpackChunkName: "page-not-found" */ '_pages/404'),
+)
+
+const FullscreenLoader = () => (
+  <div
+    // Inline style to avoid render blocking
+    style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+    }}>
+    <h4 className="text-xl text-gray-600 mt-4 font-bold">Loading Unswash</h4>
+  </div>
 )
 
 const App = () => (
