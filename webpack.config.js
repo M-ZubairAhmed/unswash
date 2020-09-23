@@ -6,7 +6,6 @@ const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const TerserJSPlugin = require('terser-webpack-plugin')
 const CompressionPlugin = require('compression-webpack-plugin')
-const HtmlCriticalWebpackPlugin = require('html-critical-webpack-plugin')
 const dotenv = require('dotenv')
 
 const reactlibsVendorsRegex = /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/
@@ -103,19 +102,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: 'styles.[contenthash].css',
       chunkFilename: 'style.[id].[contenthash].css',
-    }),
-    new HtmlCriticalWebpackPlugin({
-      base: path.resolve(__dirname, 'build'),
-      src: 'index.html',
-      dest: 'index.html',
-      inline: true,
-      minify: true,
-      extract: true,
-      width: 375,
-      height: 565,
-      penthouse: {
-        blockJSRequests: false,
-      },
     }),
     new CompressionPlugin(),
   ],

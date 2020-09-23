@@ -37,7 +37,7 @@ const SearchBar = ({
           name="search"
           className="border-t border-l border-b bg-gray-100 text-gray-900 py-2 
         px-3 rounded-bl-lg rounded-tl-lg focus:bg-white border-gray-400 flex-grow w-full lg:w-10/12 xl:w-10/12
-        focus:border-gray-600 transition-all duration-300 ease-in-out flex-grow-1"
+        focus:border-gray-600 transition-all duration-300 ease-in-out flex-grow-1 outline-none"
           type="search"
           placeholder="Search images"
           autoFocus
